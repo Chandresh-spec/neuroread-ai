@@ -184,4 +184,7 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 # HuggingFace Inference API key (supports fallbacks for Render environment variables)
 HF_API_KEY = os.getenv("HF_API_KEY") or os.getenv("HUGGINGFACE_KEY") or os.getenv("HUGGINGFACE_TOKEN") or ""
 
+# Groq API key for ultra-fast LPU inference (sub-second response)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

@@ -11,27 +11,64 @@ from .agent.pipeline import ReadingOptimizationAgent
 from .agent.serializers import OptimizeReadingRequestSerializer, OptimizeReadingResponseSerializer
 
 # ─────────────────────────────────────────────────────────────────────────────
-# AI Models — using HuggingFace Hub InferenceClient
-# The old raw requests endpoints (api-inference and router) are heavily 
-# restricted or deprecated. huggingface_hub manages correct routing.
+# AI Models — Groq LPU Ultra-Fast Inference Primary with HuggingFace Fallback
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_hf_client():
-    api_key = getattr(settings, "HF_API_KEY", "")
-    return OpenAI(
+def call_ai_completion(messages, max_tokens=600):
+    """
+    Executes chat completion using Groq for ultra-fast LPU inference (sub-second),
+    automatically falling back to Hugging Face if Groq is unavailable.
+    """
+    groq_api_key = getattr(settings, "GROQ_API_KEY", "") or os.getenv("GROQ_API_KEY", "")
+    if groq_api_key:
+        try:
+            client = OpenAI(
+                base_url="https://api.groq.com/openai/v1",
+                api_key=groq_api_key,
+                timeout=10.0
+            )
+            # Ultra-fast inference with Qwen on Groq LPUs (~120ms)
+            res = client.chat.completions.create(
+                model="qwen/qwen3.8-27b",
+                messages=messages,
+                max_tokens=max_tokens
+            )
+            return res.choices[0].message.content.strip()
+        except Exception:
+            # Secondary model attempt on Groq before HF fallback
+            try:
+                res = client.chat.completions.create(
+                    model="openai/gpt-oss-20b",
+                    messages=messages,
+                    max_tokens=max_tokens
+                )
+                return res.choices[0].message.content.strip()
+            except Exception:
+                pass
+
+    # Fallback to Hugging Face router
+    hf_api_key = getattr(settings, "HF_API_KEY", "") or os.getenv("HF_API_KEY", "")
+    hf_client = OpenAI(
         base_url="https://router.huggingface.co/v1",
-        api_key=api_key or "hf_dummy",
+        api_key=hf_api_key or "hf_dummy",
+        timeout=25.0
     )
+    res = hf_client.chat.completions.create(
+        model="zai-org/GLM-5.2-FP8:zai-org",
+        messages=messages,
+        max_tokens=max_tokens
+    )
+    return res.choices[0].message.content.strip()
 
 
 def _err(e: Exception) -> Response:
     msg = str(e).lower()
     if "model_not_supported" in msg:
-        return Response({"error": "Hugging Face Free Tier no longer supports this model. Please use a PRO key or switch to a supported model."}, status=502)
+        return Response({"error": "AI model not supported or unavailable. Please try again."}, status=502)
     if "timeout" in msg or "read operation timed out" in msg:
-        return Response({"error": "AI model is waking up (cold start). Please try again in 30 seconds."}, status=503)
+        return Response({"error": "AI model timed out. Please try again."}, status=503)
     if "unauthorized" in msg or "invalid" in msg:
-        return Response({"error": "Invalid HuggingFace API key or missing permissions."}, status=502)
+        return Response({"error": "Invalid API key or missing permissions."}, status=502)
     return Response({"error": f"AI request failed: {str(e)[:200]}"}, status=502)
 
 
@@ -45,19 +82,12 @@ class SimplifyView(APIView):
         if not text:
             return Response({"error": "No text provided."}, status=400)
 
-        # Use Gemma-2-2B for simplification (supported on the free tier, no gating)
         try:
-            client = get_hf_client()
             messages = [
                 {"role": "system", "content": "You are a helpful reading assistant. Simplify the user's text into plain, easy-to-understand language. Do not add any extra conversational filler, just return the simplified text directly."},
                 {"role": "user", "content": f"Simplify this text:\n\n{text}"}
             ]
-            res = client.chat.completions.create(
-                messages=messages, 
-                model="zai-org/GLM-5.2-FP8:zai-org",
-                max_tokens=600
-            )
-            output = res.choices[0].message.content.strip()
+            output = call_ai_completion(messages=messages, max_tokens=600)
             return Response({"simplified": output})
         except Exception as e:
             return _err(e)
@@ -73,19 +103,12 @@ class StructureView(APIView):
         if not text:
             return Response({"error": "No text provided."}, status=400)
 
-        # Use Gemma-2-2B for structuring text into bullet points
         try:
-            client = get_hf_client()
             messages = [
                 {"role": "system", "content": "You are a helpful reading assistant. Extract the main points from the user's text and format them as a concise bulleted list. Do not add conversational filler. Use a • character for each bullet point."},
                 {"role": "user", "content": f"Format this text as a structural bulleted list:\n\n{text}"}
             ]
-            res = client.chat.completions.create(
-                messages=messages, 
-                model="zai-org/GLM-5.2-FP8:zai-org",
-                max_tokens=600
-            )
-            output = res.choices[0].message.content.strip()
+            output = call_ai_completion(messages=messages, max_tokens=600)
             return Response({"structured": output})
         except Exception as e:
             return _err(e)
@@ -132,7 +155,18 @@ class ExplainWordView(APIView):
         except Exception:
             pass
 
-        return Response({"error": f"Definition not found in dictionary for '{word}'."}, status=404)
+        # Fallback: Use ultra-fast AI to define word if not found in dictionary
+        try:
+            explanation = call_ai_completion([
+                {"role": "system", "content": "You are a concise reading dictionary. Define the requested word clearly in simple, accessible language. Include part of speech and an example sentence if possible. Keep it short (under 50 words)."},
+                {"role": "user", "content": f"Define the word: '{word}'" + (f" in this context: '{context}'" if context else "")}
+            ], max_tokens=150)
+            if explanation:
+                return Response({"word": word, "explanation": explanation})
+        except Exception:
+            pass
+
+        return Response({"error": f"Definition not found for '{word}'."}, status=404)
 
 
 # ── 4. Agentic Reading Optimizer ──────────────────────────────────────────────
