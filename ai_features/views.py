@@ -11,65 +11,46 @@ from .agent.pipeline import ReadingOptimizationAgent
 from .agent.serializers import OptimizeReadingRequestSerializer, OptimizeReadingResponseSerializer
 
 # ─────────────────────────────────────────────────────────────────────────────
-# AI Models — Groq LPU Ultra-Fast Inference Primary with HuggingFace Fallback
+# AI Models — Groq LPU Ultra-Fast Inference Only (Near Instant Sub-Second)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def call_ai_completion(messages, max_tokens=600):
     """
-    Executes chat completion using Groq for ultra-fast LPU inference (sub-second),
-    automatically falling back to Hugging Face if Groq is unavailable.
+    Executes chat completion using Groq LPUs for near-instant (sub-second) response.
     """
     groq_api_key = getattr(settings, "GROQ_API_KEY", "") or os.getenv("GROQ_API_KEY", "")
-    if groq_api_key:
-        try:
-            client = OpenAI(
-                base_url="https://api.groq.com/openai/v1",
-                api_key=groq_api_key,
-                timeout=10.0
-            )
-            # Ultra-fast inference with Qwen on Groq LPUs (~120ms)
-            res = client.chat.completions.create(
-                model="qwen/qwen3.8-27b",
-                messages=messages,
-                max_tokens=max_tokens
-            )
-            return res.choices[0].message.content.strip()
-        except Exception:
-            # Secondary model attempt on Groq before HF fallback
-            try:
-                res = client.chat.completions.create(
-                    model="openai/gpt-oss-20b",
-                    messages=messages,
-                    max_tokens=max_tokens
-                )
-                return res.choices[0].message.content.strip()
-            except Exception:
-                pass
+    
+    client = OpenAI(
+        base_url="https://api.groq.com/openai/v1",
+        api_key=groq_api_key,
+        timeout=8.0
+    )
 
-    # Fallback to Hugging Face router
-    hf_api_key = getattr(settings, "HF_API_KEY", "") or os.getenv("HF_API_KEY", "")
-    hf_client = OpenAI(
-        base_url="https://router.huggingface.co/v1",
-        api_key=hf_api_key or "hf_dummy",
-        timeout=25.0
-    )
-    res = hf_client.chat.completions.create(
-        model="zai-org/GLM-5.2-FP8:zai-org",
-        messages=messages,
-        max_tokens=max_tokens
-    )
-    return res.choices[0].message.content.strip()
+    # Primary ultra-fast model (Qwen 27B on Groq LPUs)
+    try:
+        res = client.chat.completions.create(
+            model="qwen/qwen3.8-27b",
+            messages=messages,
+            max_tokens=max_tokens
+        )
+        return res.choices[0].message.content.strip()
+    except Exception:
+        # Fast fallback model on Groq
+        res = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=messages,
+            max_tokens=max_tokens
+        )
+        return res.choices[0].message.content.strip()
 
 
 def _err(e: Exception) -> Response:
     msg = str(e).lower()
-    if "model_not_supported" in msg:
-        return Response({"error": "AI model not supported or unavailable. Please try again."}, status=502)
-    if "timeout" in msg or "read operation timed out" in msg:
-        return Response({"error": "AI model timed out. Please try again."}, status=503)
-    if "unauthorized" in msg or "invalid" in msg:
-        return Response({"error": "Invalid API key or missing permissions."}, status=502)
-    return Response({"error": f"AI request failed: {str(e)[:200]}"}, status=502)
+    if "timeout" in msg or "timed out" in msg:
+        return Response({"error": "Groq request timed out. Please try again."}, status=503)
+    if "unauthorized" in msg or "invalid" in msg or "api_key" in msg:
+        return Response({"error": "Invalid Groq API key."}, status=502)
+    return Response({"error": f"Groq AI request failed: {str(e)[:200]}"}, status=502)
 
 
 # ── 1. Simplify ───────────────────────────────────────────────────────────────

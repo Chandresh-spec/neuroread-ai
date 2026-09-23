@@ -5566,9 +5566,8 @@
 
         /* ══════════════════════════════════════════════════════════════
            AI READING ASSISTANT
-           Connects to Django /api/ai/* which proxies to HuggingFace
-           Models: distilbart-cnn-12-6 (simplify/structure)
-                   flan-t5-base (word explanation)
+           Connects to Django /api/ai/* powered by Groq LPU Ultra-Fast Inference
+           Models: Qwen 27B / GPT-OSS 20B (sub-second simplify/structure)
         ══════════════════════════════════════════════════════════════ */
         const AITools = {
 

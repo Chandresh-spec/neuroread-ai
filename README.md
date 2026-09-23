@@ -69,7 +69,7 @@ A full-stack AI reading assistant that:
 ### Agentic Intelligence
 
 * Complexity detection workflow
-* HuggingFace inference integration
+* Groq LPU ultra-fast inference integration
 * Intelligent suggestion banner
 * Proactive AI assistance
 
@@ -103,8 +103,8 @@ A full-stack AI reading assistant that:
 
 ### AI Layer
 
-* HuggingFace Inference API
-* distilbart model
+* Groq LPU Inference API (sub-second responses)
+* Qwen 27B / GPT-OSS 20B models
 * deep-translator
 
 **Architecture:** Headless SPA with REST APIs.
@@ -142,8 +142,8 @@ Create a `.env` file (or set these as environment variables on Render):
 SECRET_KEY=your_django_secret_here
 DEBUG=False
 
-# HuggingFace API Token (supports HF_API_KEY, HUGGINGFACE_KEY, or HUGGINGFACE_TOKEN)
-HF_API_KEY=your_huggingface_api_token_here
+# Groq API Key for Ultra-Fast AI (Sub-second responses)
+GROQ_API_KEY=your_groq_api_key_here
 
 # Google OAuth (Optional)
 GOOGLE_CLIENT_ID=your_google_client_id_here
