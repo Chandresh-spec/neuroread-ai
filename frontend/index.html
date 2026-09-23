@@ -1863,6 +1863,247 @@
             background: var(--accent-hover)
         }
 
+        /* ── PRONUNCIATION COACH BAR ── */
+        .coach-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(140px);
+            background: var(--bg-card);
+            border: 1.5px solid var(--accent);
+            border-radius: var(--radius-xl);
+            padding: 10px 18px;
+            box-shadow: 0 10px 45px var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 505;
+            transition: transform var(--transition-slow), opacity var(--transition-slow);
+            opacity: 0;
+            min-width: 650px;
+            max-width: 95vw;
+        }
+
+        .coach-bar.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .coach-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 170px;
+        }
+
+        .coach-mic-btn {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all var(--transition);
+        }
+
+        .coach-mic-btn.listening .coach-pulse-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            animation: coachPulse 1.4s infinite ease-out;
+            pointer-events: none;
+        }
+
+        .coach-mic-btn.paused {
+            background: var(--bg-secondary);
+            border-color: var(--border);
+            color: var(--text-muted);
+        }
+
+        @keyframes coachPulse {
+            0% { transform: scale(1); opacity: 0.9; }
+            100% { transform: scale(1.45); opacity: 0; }
+        }
+
+        .coach-status-wrap {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .coach-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .coach-status {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .coach-middle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .coach-target-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-panel);
+            padding: 5px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .coach-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .coach-target-word {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .coach-error-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #dc2626;
+            padding: 4px 10px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            animation: coachShake 0.3s ease-in-out;
+        }
+
+        @keyframes coachShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .coach-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coach-speed-presets {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-panel);
+            padding: 2px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .coach-speed-btn {
+            border: none;
+            background: transparent;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 3px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .coach-speed-btn.active, .coach-speed-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .coach-action-btn, .coach-action-sm-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 5px 9px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .coach-action-btn:hover, .coach-action-sm-btn:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .coach-close-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all var(--transition);
+        }
+
+        .coach-close-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        /* ── WORD HIGHLIGHTING FOR PRONUNCIATION COACH ── */
+        .pronounce-target {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+            background: var(--accent-light);
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .pronounce-correct {
+            color: var(--accent) !important;
+            background: rgba(74, 124, 89, 0.14) !important;
+            border-radius: 3px;
+        }
+
+        .pronounce-wrong {
+            color: #dc2626 !important;
+            background: rgba(239, 68, 68, 0.22) !important;
+            border-bottom: 2.5px solid #dc2626 !important;
+            border-radius: 3px;
+            animation: pulseWrong 0.8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseWrong {
+            from { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+            to { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+        }
+
+
+
         .tts-speed {
             display: flex;
             align-items: center;
@@ -2686,6 +2927,8 @@
                 </button>
                 <button class="icon-btn" id="btn-tts-toggle" data-tooltip="Text to Speech" aria-label="Toggle TTS"
                     aria-pressed="false">🔊</button>
+                <button class="icon-btn" id="btn-coach-toggle" data-tooltip="Pronunciation Coach (Listen as I Read)" aria-label="Toggle Pronunciation Coach"
+                    aria-pressed="false">🎙️</button>
                 <button class="icon-btn" id="btn-ruler" data-tooltip="Reading Ruler" aria-label="Toggle ruler"
                     aria-pressed="false" style="display: none !important;">📏</button>
                 <button class="icon-btn" id="btn-focus" data-tooltip="Focus Mode" aria-label="Toggle focus mode"
@@ -3041,6 +3284,14 @@
                                 <div class="toggle-track"></div>
                                 <div class="toggle-thumb"></div>
                             </label>
+                        </div>
+                        <div class="toggle-row"><span class="toggle-label" style="font-weight:600; color:var(--accent);">Pronunciation Coach 🎙️</span>
+                            <label class="toggle-switch"><input type="checkbox" id="toggle-coach-mode" role="switch">
+                                <div class="toggle-track"></div>
+                                <div class="toggle-thumb"></div>
+                            </label>
+                            <p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Listens as you read PDF/books, alerts when pronunciation is wrong, speaks the correct word, and speeds up AI replay.</p>
+                        </div>
                         <div class="toggle-row"><span class="toggle-label" style="font-weight:600; color:var(--accent);">Smart Attention Mode 📷</span>
                             <label class="toggle-switch"><input type="checkbox" id="toggle-smart-attention" role="switch">
                                 <div class="toggle-track"></div>
@@ -3110,6 +3361,50 @@
             <span aria-hidden="true">🐇</span>
         </div>
         <span class="tts-status" id="tts-status" aria-live="polite">Ready</span>
+    </div>
+
+    <!-- PRONUNCIATION COACH BAR -->
+    <div class="coach-bar" id="coach-bar" role="toolbar" aria-label="Pronunciation Coach">
+        <div class="coach-left">
+            <button class="coach-mic-btn" id="coach-mic-btn" aria-label="Toggle microphone" title="Click to pause or resume listening">
+                <span class="coach-mic-icon">🎙️</span>
+                <span class="coach-pulse-ring"></span>
+            </button>
+            <div class="coach-status-wrap">
+                <span class="coach-title">Pronunciation Coach</span>
+                <span class="coach-status" id="coach-status">Listening... Read aloud</span>
+            </div>
+        </div>
+
+        <div class="coach-middle" id="coach-feedback-area">
+            <div class="coach-target-box">
+                <span class="coach-label">Current Word:</span>
+                <span class="coach-target-word" id="coach-target-word">–</span>
+            </div>
+            <!-- Alert badge when wrong -->
+            <div class="coach-error-badge" id="coach-error-badge" style="display:none;">
+                <span class="coach-error-icon">⚠️</span>
+                <span class="coach-error-msg" id="coach-error-msg">Wrong Pronunciation!</span>
+                <button class="coach-action-sm-btn" id="coach-btn-replay" title="Hear AI Pronunciation">🔊 Replay</button>
+            </div>
+        </div>
+
+        <div class="coach-right">
+            <!-- Speed Control for Fast AI Replay -->
+            <div class="coach-speed-wrap" style="display:flex;align-items:center;gap:4px;" title="Fast AI Correction Replay Speed">
+                <span style="font-size:11px;font-weight:600;color:var(--text-secondary);">⚡ Speed:</span>
+                <div class="coach-speed-presets">
+                    <button class="coach-speed-btn" data-speed="1.2">1.2x</button>
+                    <button class="coach-speed-btn active" data-speed="1.4">1.4x</button>
+                    <button class="coach-speed-btn" data-speed="1.6">1.6x</button>
+                    <button class="coach-speed-btn" data-speed="2.0">2.0x</button>
+                </div>
+            </div>
+
+            <button class="coach-action-btn" id="coach-btn-skip" title="Skip current word">⏭️ Skip</button>
+            <button class="coach-action-btn" id="coach-btn-restart" title="Restart page from beginning">🔄 Restart</button>
+            <button class="coach-close-btn" id="coach-btn-close" title="Close Pronunciation Coach" aria-label="Close">✕</button>
+        </div>
     </div>
 
     <!-- Smart Attention Overlay -->
@@ -3916,6 +4211,9 @@
 
                 document.getElementById('reader-title').focus();
                 TTS.stop();
+                if (typeof PronunciationCoach !== 'undefined' && PronunciationCoach.active) {
+                    PronunciationCoach.onPageChanged();
+                }
                 History.add(book.id);
                 this.updateMeta();
                 updateMarkReadBtn();
@@ -3966,6 +4264,9 @@
                 this.renderText(this.pdfPages[p - 1]);
                 if (FocusMode.active) { FocusMode.clear(); FocusMode.initLines(); }
                 TTS.stop();
+                if (typeof PronunciationCoach !== 'undefined' && PronunciationCoach.active) {
+                    PronunciationCoach.onPageChanged();
+                }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 this.updatePDFPageUI();
                 // Save page progress
@@ -3993,6 +4294,7 @@
                 const rv = document.getElementById('reader-view');
                 rv.style.display = 'none'; rv.classList.remove('active');
                 TTS.stop(); FocusMode.clear(); HLToolbar.hide();
+                if (typeof PronunciationCoach !== 'undefined') PronunciationCoach.stop();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 Library.render();
                 if (currentLibTab === 'myfiles') FileUpload.renderGrid();
@@ -4253,6 +4555,9 @@
             },
             toggle() { if (this.playing) this.pause(); else this.play(); },
             play() {
+                if (typeof PronunciationCoach !== 'undefined' && PronunciationCoach.active) {
+                    PronunciationCoach.stop();
+                }
                 if (!('speechSynthesis' in window)) { toast('TTS not supported in this browser'); return; }
                 const el = document.getElementById('reading-text');
                 const txt = el.innerText || el.textContent;
@@ -4395,6 +4700,533 @@
                         TTS.play();
                     }
                 }
+            }
+        };
+
+        /* ── PRONUNCIATION COACH ──────────────────────────────────── */
+        const PronunciationCoach = {
+            recognition: null,
+            synth: window.speechSynthesis,
+            active: false,
+            listening: false,
+            isAISpeaking: false,
+            wordSpans: [],
+            wordList: [],
+            currentIdx: 0,
+            replaySpeed: 1.4,
+            homophones: {
+                'their': ['there', "they're"], 'there': ['their', "they're"], "they're": ['their', 'there'],
+                'to': ['too', 'two'], 'too': ['to', 'two'], 'two': ['to', 'too'],
+                'hear': ['here'], 'here': ['hear'],
+                'by': ['buy', 'bye'], 'buy': ['by', 'bye'], 'bye': ['by', 'buy'],
+                'for': ['four', 'fore'], 'four': ['for', 'fore'],
+                'no': ['know'], 'know': ['no'],
+                'new': ['knew'], 'knew': ['new'],
+                'sun': ['son'], 'son': ['sun'],
+                'one': ['won'], 'won': ['one'],
+                'right': ['write', 'rite'], 'write': ['right', 'rite'],
+                'sea': ['see'], 'see': ['sea'],
+                'our': ['hour'], 'hour': ['our'],
+                'road': ['rode', 'rowed'], 'rode': ['road'],
+                'peace': ['piece'], 'piece': ['peace'],
+                'weak': ['week'], 'week': ['weak'],
+                'read': ['red'], 'red': ['read'],
+                'break': ['brake'], 'brake': ['break'],
+                'die': ['dye'], 'dye': ['die'],
+                'hole': ['whole'], 'whole': ['hole'],
+                'knight': ['night'], 'night': ['knight'],
+                'knot': ['not'], 'not': ['knot'],
+                'meat': ['meet'], 'meet': ['meat'],
+                'pain': ['pane'], 'pane': ['pain'],
+                'pair': ['pear'], 'pear': ['pair'],
+                'plain': ['plane'], 'plane': ['plain'],
+                'rain': ['reign', 'rein'], 'reign': ['rain'], 'rein': ['rain'],
+                'sail': ['sale'], 'sale': ['sail'],
+                'scene': ['seen'], 'seen': ['scene'],
+                'so': ['sew', 'sow'], 'sew': ['so'],
+                'some': ['sum'], 'sum': ['some'],
+                'stair': ['stare'], 'stare': ['stair'],
+                'steal': ['steel'], 'steel': ['steal'],
+                'tail': ['tale'], 'tail': ['tail'],
+                'threw': ['through'], 'through': ['threw'],
+                'wait': ['weight'], 'weight': ['wait'],
+                'way': ['weigh'], 'weigh': ['way']
+            },
+
+            init() {
+                // Header button
+                const btnToggle = document.getElementById('btn-coach-toggle');
+                if (btnToggle) {
+                    btnToggle.addEventListener('click', () => this.toggle());
+                }
+
+                // Settings toggle
+                const settingsToggle = document.getElementById('toggle-coach-mode');
+                if (settingsToggle) {
+                    settingsToggle.addEventListener('change', (e) => {
+                        if (e.target.checked && !this.active) this.start();
+                        else if (!e.target.checked && this.active) this.stop();
+                    });
+                }
+
+                // Coach bar mic button
+                const micBtn = document.getElementById('coach-mic-btn');
+                if (micBtn) {
+                    micBtn.addEventListener('click', () => {
+                        if (this.listening) this.pauseListening();
+                        else this.resumeListening();
+                    });
+                }
+
+                // Skip button
+                const skipBtn = document.getElementById('coach-btn-skip');
+                if (skipBtn) {
+                    skipBtn.addEventListener('click', () => this.skipWord());
+                }
+
+                // Restart button
+                const restartBtn = document.getElementById('coach-btn-restart');
+                if (restartBtn) {
+                    restartBtn.addEventListener('click', () => this.restartPage());
+                }
+
+                // Close button
+                const closeBtn = document.getElementById('coach-btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => this.stop());
+                }
+
+                // Replay button
+                const replayBtn = document.getElementById('coach-btn-replay');
+                if (replayBtn) {
+                    replayBtn.addEventListener('click', () => {
+                        if (this.currentIdx < this.wordList.length) {
+                            this.speakCorrection(this.wordList[this.currentIdx].raw);
+                        }
+                    });
+                }
+
+                // Speed buttons (Fast AI Replay)
+                document.querySelectorAll('.coach-speed-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const speed = parseFloat(btn.dataset.speed) || 1.4;
+                        this.setSpeed(speed);
+                    });
+                });
+
+                // Load saved speed
+                const savedSpeed = parseFloat(Prefs.get('coachReplaySpeed')) || 1.4;
+                this.setSpeed(savedSpeed);
+            },
+
+            setSpeed(speed) {
+                this.replaySpeed = speed;
+                Prefs.save('coachReplaySpeed', speed);
+                document.querySelectorAll('.coach-speed-btn').forEach(btn => {
+                    btn.classList.toggle('active', parseFloat(btn.dataset.speed) === speed);
+                });
+            },
+
+            clean(str) {
+                return (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            },
+
+            levenshtein(a, b) {
+                if (a === b) return 0;
+                if (!a.length) return b.length;
+                if (!b.length) return a.length;
+                const matrix = [];
+                for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+                for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+                for (let i = 1; i <= b.length; i++) {
+                    for (let j = 1; j <= a.length; j++) {
+                        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                            matrix[i][j] = matrix[i - 1][j - 1];
+                        } else {
+                            matrix[i][j] = Math.min(
+                                matrix[i - 1][j - 1] + 1,
+                                matrix[i][j - 1] + 1,
+                                matrix[i - 1][j] + 1
+                            );
+                        }
+                    }
+                }
+                return matrix[b.length][a.length];
+            },
+
+            isWordMatch(spoken, target) {
+                const s = this.clean(spoken);
+                const t = this.clean(target);
+                if (!s || !t) return false;
+                if (s === t) return true;
+
+                // Homophones check
+                if (this.homophones[t] && this.homophones[t].map(h => this.clean(h)).includes(s)) {
+                    return true;
+                }
+
+                // Numbers to words basic support
+                const numMap = { '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five',
+                                 '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', '10': 'ten' };
+                if (numMap[s] === t || numMap[t] === s) return true;
+
+                // Levenshtein tolerance for longer words (handles minor speech-to-text transcription noise)
+                const dist = this.levenshtein(s, t);
+                if (t.length > 5 && dist <= 1) return true;
+                if (t.length > 8 && dist <= 2) return true;
+
+                return false;
+            },
+
+            toggle() {
+                if (this.active) {
+                    this.stop();
+                } else {
+                    this.start();
+                }
+            },
+
+            start() {
+                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRec) {
+                    toast('⚠️ Speech Recognition is not supported in this browser. Please use Chrome or Edge.');
+                    return;
+                }
+
+                const isReader = document.getElementById('reader-view').classList.contains('active');
+                if (!isReader) {
+                    toast('Please open a book or PDF to start Pronunciation Coach.');
+                    return;
+                }
+
+                // If TTS is playing, pause TTS so they don't clash
+                if (TTS.playing) TTS.stop();
+
+                this.active = true;
+                const btnToggle = document.getElementById('btn-coach-toggle');
+                if (btnToggle) {
+                    btnToggle.classList.add('active');
+                    btnToggle.setAttribute('aria-pressed', 'true');
+                }
+                const settingsToggle = document.getElementById('toggle-coach-mode');
+                if (settingsToggle) settingsToggle.checked = true;
+
+                updateCoachBar();
+                this.loadPageWords();
+                this.startRecognition();
+                toast('🎙️ Pronunciation Coach active — read aloud from the page!');
+            },
+
+            stop() {
+                this.active = false;
+                this.stopRecognition();
+                if (this.synth) this.synth.cancel();
+
+                this.clearHighlights();
+
+                const btnToggle = document.getElementById('btn-coach-toggle');
+                if (btnToggle) {
+                    btnToggle.classList.remove('active');
+                    btnToggle.setAttribute('aria-pressed', 'false');
+                }
+                const settingsToggle = document.getElementById('toggle-coach-mode');
+                if (settingsToggle) settingsToggle.checked = false;
+
+                const errorBadge = document.getElementById('coach-error-badge');
+                if (errorBadge) errorBadge.style.display = 'none';
+
+                updateCoachBar();
+                toast('Pronunciation Coach off');
+            },
+
+            onPageChanged() {
+                if (!this.active) return;
+                this.clearHighlights();
+                this.loadPageWords();
+                const errorBadge = document.getElementById('coach-error-badge');
+                if (errorBadge) errorBadge.style.display = 'none';
+            },
+
+            loadPageWords() {
+                const spans = document.querySelectorAll('#reading-text .tts-word');
+                this.wordSpans = Array.from(spans);
+                this.wordList = this.wordSpans.map(s => {
+                    const raw = s.innerText || s.textContent;
+                    return {
+                        raw: raw,
+                        clean: this.clean(raw)
+                    };
+                }).filter(w => w.clean.length > 0);
+
+                this.currentIdx = 0;
+                this.highlightCurrentTarget();
+                this.updateUI();
+            },
+
+            clearHighlights() {
+                document.querySelectorAll('.pronounce-target, .pronounce-correct, .pronounce-wrong').forEach(el => {
+                    el.classList.remove('pronounce-target', 'pronounce-correct', 'pronounce-wrong');
+                });
+            },
+
+            highlightCurrentTarget() {
+                document.querySelectorAll('.pronounce-target').forEach(el => el.classList.remove('pronounce-target'));
+                if (this.currentIdx < this.wordSpans.length) {
+                    const span = this.wordSpans[this.currentIdx];
+                    if (span) {
+                        span.classList.add('pronounce-target');
+                        span.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            },
+
+            updateUI() {
+                const targetWordEl = document.getElementById('coach-target-word');
+                if (targetWordEl) {
+                    if (this.currentIdx < this.wordList.length) {
+                        targetWordEl.textContent = this.wordList[this.currentIdx].raw;
+                    } else if (this.wordList.length > 0) {
+                        targetWordEl.textContent = '🎉 Page Complete!';
+                    } else {
+                        targetWordEl.textContent = '–';
+                    }
+                }
+            },
+
+            startRecognition() {
+                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRec) return;
+
+                if (this.recognition) {
+                    try { this.recognition.abort(); } catch (e) {}
+                }
+
+                this.recognition = new SpeechRec();
+                this.recognition.continuous = true;
+                this.recognition.interimResults = false;
+                this.recognition.lang = 'en-US';
+
+                this.recognition.onstart = () => {
+                    this.listening = true;
+                    this.updateMicUI();
+                    const statusEl = document.getElementById('coach-status');
+                    if (statusEl) statusEl.textContent = 'Listening... Read aloud';
+                };
+
+                this.recognition.onresult = (e) => {
+                    if (this.isAISpeaking) return; // Ignore any sounds while AI is talking
+
+                    for (let i = e.resultIndex; i < e.results.length; i++) {
+                        const result = e.results[i];
+                        if (result.isFinal) {
+                            const transcript = result[0].transcript.trim();
+                            this.processSpokenTranscript(transcript);
+                        }
+                    }
+                };
+
+                this.recognition.onerror = (e) => {
+                    if (e.error === 'not-allowed') {
+                        toast('❌ Microphone permission denied. Please allow microphone access.');
+                        this.stop();
+                    }
+                };
+
+                this.recognition.onend = () => {
+                    this.listening = false;
+                    this.updateMicUI();
+                    // Automatically restart if still active and not speaking AI
+                    if (this.active && !this.isAISpeaking) {
+                        try { this.recognition.start(); } catch (e) {}
+                    }
+                };
+
+                try {
+                    this.recognition.start();
+                } catch (err) {
+                    console.error("Could not start speech recognition:", err);
+                }
+            },
+
+            stopRecognition() {
+                if (this.recognition) {
+                    try {
+                        this.recognition.onend = null;
+                        this.recognition.abort();
+                    } catch (e) {}
+                    this.recognition = null;
+                }
+                this.listening = false;
+                this.updateMicUI();
+            },
+
+            pauseListening() {
+                if (this.recognition) {
+                    try { this.recognition.abort(); } catch (e) {}
+                }
+                this.listening = false;
+                this.updateMicUI();
+                const statusEl = document.getElementById('coach-status');
+                if (statusEl) statusEl.textContent = 'Paused (Click mic to resume)';
+            },
+
+            resumeListening() {
+                this.startRecognition();
+            },
+
+            updateMicUI() {
+                const micBtn = document.getElementById('coach-mic-btn');
+                if (micBtn) {
+                    micBtn.classList.toggle('listening', this.listening);
+                    micBtn.classList.toggle('paused', !this.listening);
+                }
+            },
+
+            processSpokenTranscript(transcript) {
+                if (!transcript || this.currentIdx >= this.wordList.length) return;
+
+                const spokenWords = transcript.split(/\s+/).map(w => this.clean(w)).filter(Boolean);
+                if (!spokenWords.length) return;
+
+                let spokenIdx = 0;
+                while (spokenIdx < spokenWords.length && this.currentIdx < this.wordList.length) {
+                    const spoken = spokenWords[spokenIdx];
+                    const target = this.wordList[this.currentIdx];
+
+                    if (this.isWordMatch(spoken, target.clean)) {
+                        // Word pronounced correctly!
+                        this.handleCorrectWord();
+                        spokenIdx++;
+                    } else {
+                        // Check if reader jumped ahead by 1 word
+                        if (this.currentIdx + 1 < this.wordList.length && this.isWordMatch(spoken, this.wordList[this.currentIdx + 1].clean)) {
+                            // User skipped target word and said the next one
+                            this.currentIdx++;
+                            this.handleCorrectWord();
+                            spokenIdx++;
+                        } else {
+                            // Pronounced wrongly!
+                            this.handleWrongPronunciation(target.raw, spoken);
+                            break; // Stop processing further spoken words in this batch so user hears feedback
+                        }
+                    }
+                }
+            },
+
+            handleCorrectWord() {
+                const span = this.wordSpans[this.currentIdx];
+                if (span) {
+                    span.classList.remove('pronounce-target', 'pronounce-wrong');
+                    span.classList.add('pronounce-correct');
+                }
+
+                // Hide mistake badge
+                const errorBadge = document.getElementById('coach-error-badge');
+                if (errorBadge) errorBadge.style.display = 'none';
+
+                this.currentIdx++;
+                this.highlightCurrentTarget();
+                this.updateUI();
+
+                const statusEl = document.getElementById('coach-status');
+                if (statusEl) statusEl.textContent = 'Great! Keep reading...';
+
+                // Check if page finished
+                if (this.currentIdx >= this.wordList.length) {
+                    if (statusEl) statusEl.textContent = '🎉 Page complete! Turn to next page.';
+                    toast('🎉 Great reading! Page completed.');
+                }
+            },
+
+            handleWrongPronunciation(expectedWord, spokenWord) {
+                const span = this.wordSpans[this.currentIdx];
+                if (span) {
+                    span.classList.remove('pronounce-target');
+                    span.classList.add('pronounce-wrong');
+                    span.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+                // Update UI Display
+                const errorBadge = document.getElementById('coach-error-badge');
+                const errorMsg = document.getElementById('coach-error-msg');
+                if (errorBadge && errorMsg) {
+                    errorMsg.innerHTML = `Wrong Pronunciation! Expected: <strong>${expectedWord}</strong> (Heard: "${spokenWord}")`;
+                    errorBadge.style.display = 'flex';
+                }
+
+                const statusEl = document.getElementById('coach-status');
+                if (statusEl) statusEl.textContent = `Correction: "${expectedWord}"`;
+
+                // Audibly announce and pronounce with accelerated AI replay speed
+                this.speakCorrection(expectedWord);
+            },
+
+            speakCorrection(word) {
+                if (!('speechSynthesis' in window)) return;
+
+                this.synth.cancel();
+                this.isAISpeaking = true;
+
+                // Temporarily abort recognition so mic doesn't pick up AI voice
+                if (this.recognition) {
+                    try { this.recognition.abort(); } catch (e) {}
+                }
+
+                // Specifically matches user request: "said this is wrong prounose ,and it should pronounce that and speed up the ai replay"
+                const textToSay = `This is wrong pronounce: ${word}`;
+                const utterance = new SpeechSynthesisUtterance(textToSay);
+
+                // Speed up the AI replay (accelerated playback rate)
+                utterance.rate = this.replaySpeed || 1.4;
+                utterance.pitch = 1.0;
+                utterance.lang = 'en-US';
+
+                utterance.onend = () => {
+                    setTimeout(() => {
+                        this.isAISpeaking = false;
+                        if (this.active) {
+                            this.startRecognition();
+                            const statusEl = document.getElementById('coach-status');
+                            if (statusEl) statusEl.textContent = 'Now try reading the word again...';
+                        }
+                    }, 350);
+                };
+
+                utterance.onerror = () => {
+                    this.isAISpeaking = false;
+                    if (this.active) this.startRecognition();
+                };
+
+                this.synth.speak(utterance);
+            },
+
+            skipWord() {
+                if (this.currentIdx < this.wordList.length) {
+                    const span = this.wordSpans[this.currentIdx];
+                    if (span) span.classList.remove('pronounce-target', 'pronounce-wrong');
+                    this.currentIdx++;
+                    this.highlightCurrentTarget();
+                    this.updateUI();
+
+                    const errorBadge = document.getElementById('coach-error-badge');
+                    if (errorBadge) errorBadge.style.display = 'none';
+
+                    const statusEl = document.getElementById('coach-status');
+                    if (statusEl) statusEl.textContent = 'Word skipped. Continue reading...';
+                }
+            },
+
+            restartPage() {
+                this.clearHighlights();
+                this.currentIdx = 0;
+                this.highlightCurrentTarget();
+                this.updateUI();
+
+                const errorBadge = document.getElementById('coach-error-badge');
+                if (errorBadge) errorBadge.style.display = 'none';
+
+                const statusEl = document.getElementById('coach-status');
+                if (statusEl) statusEl.textContent = 'Restarted page. Start reading!';
             }
         };
 
@@ -4606,6 +5438,15 @@
             document.getElementById('tts-bar').classList.toggle('visible', isR && ttsOn);
         }
 
+        /* ── PRONUNCIATION COACH BAR VISIBILITY ───────────────────── */
+        function updateCoachBar() {
+            const isR = document.getElementById('reader-view').classList.contains('active');
+            const btn = document.getElementById('btn-coach-toggle');
+            const coachOn = btn ? btn.classList.contains('active') : false;
+            const bar = document.getElementById('coach-bar');
+            if (bar) bar.classList.toggle('visible', isR && coachOn);
+        }
+
         /* ── KEYBOARD ──────────────────────────────────────────────── */
         function initKeyboard() {
             document.addEventListener('keydown', e => {
@@ -4616,6 +5457,7 @@
                 if (e.key === 'Escape') { if (SettingsPanel.open) SettingsPanel.toggle(); HLToolbar.hide(); }
                 if (e.key === 'f' && e.altKey) { e.preventDefault(); FocusMode.toggle(); }
                 if (e.key === 'r' && e.altKey) { e.preventDefault(); Ruler.toggle(); }
+                if (e.key === 'l' && e.altKey && isR) { e.preventDefault(); PronunciationCoach.toggle(); }
                 if (e.key === 'ArrowRight' && isR && Reader.pdfPages) { e.preventDefault(); Reader.pdfNext(); }
                 if (e.key === 'ArrowLeft' && isR && Reader.pdfPages) { e.preventDefault(); Reader.pdfPrev(); }
             });
@@ -4627,6 +5469,7 @@
             Customizer.init();
             TTS.init();
             SmartAttention.init();
+            PronunciationCoach.init();
             HLToolbar.init();
             FileUpload.init();
             initLibTabs();
@@ -4670,7 +5513,12 @@
                 const btn = document.getElementById('btn-tts-toggle');
                 const a = btn.classList.toggle('active');
                 btn.setAttribute('aria-pressed', a); updateTTSBar();
-                if (a) toast('TTS ready — press ▶ or Spacebar'); else { TTS.stop(); toast('TTS off'); }
+                if (a) {
+                    if (typeof PronunciationCoach !== 'undefined' && PronunciationCoach.active) PronunciationCoach.stop();
+                    toast('TTS ready — press ▶ or Spacebar');
+                } else {
+                    TTS.stop(); toast('TTS off');
+                }
             });
 
             document.getElementById('btn-ruler').addEventListener('click', () => Ruler.toggle());
@@ -4680,7 +5528,10 @@
 
             document.addEventListener('mousemove', e => Ruler.move(e.clientY));
             window.addEventListener('scroll', updateProgress, { passive: true });
-            new MutationObserver(updateTTSBar).observe(document.getElementById('reader-view'), { attributes: true });
+            new MutationObserver(() => {
+                updateTTSBar();
+                updateCoachBar();
+            }).observe(document.getElementById('reader-view'), { attributes: true });
             document.addEventListener('mousedown', e => { if (!document.getElementById('highlight-toolbar').contains(e.target)) HLToolbar.hide(); });
 
             // Logout button
@@ -5279,6 +6130,13 @@
                 icon: '🔊',
                 title: 'Listen While You Read',
                 desc: 'Click this to hear the text read aloud with word-by-word highlighting. Use the ruler 📏 and focus 🎯 buttons nearby too!',
+                position: 'bottom'
+            },
+            {
+                target: '#btn-coach-toggle',
+                icon: '🎙️',
+                title: 'Pronunciation Coach',
+                desc: 'Practice reading aloud! NeuroRead listens, alerts if a word is mispronounced, speaks the correct pronunciation, and speeds up the AI replay.',
                 position: 'bottom'
             },
             {
