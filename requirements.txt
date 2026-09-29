@@ -10,3 +10,5 @@ deep-translator>=1.11.4
 requests>=2.31.0
 PyJWT>=2.8.0
 openai>=1.14.0
+pytest>=8.0.0
+pytest-django>=4.8.0
