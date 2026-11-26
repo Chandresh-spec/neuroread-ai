@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, Headphones } from 'lucide-react';
+import UserAvatar from './UserAvatar';
 
 export default function Navbar({
   activeNav,
@@ -7,6 +8,7 @@ export default function Navbar({
   onOpenSearch,
   onOpenProfile,
   onOpenVoiceReader,
+  profile,
 }) {
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -80,17 +82,20 @@ export default function Navbar({
 
             {/* Circular User Profile Avatar */}
             <button
+              type="button"
               onClick={onOpenProfile}
-              aria-label="Open Profile, Highlights & Settings"
-              title="Profile & Settings"
-              className="relative group focus:outline-none"
+              aria-label="Open profile, highlights, and settings"
+              title="Profile & settings"
+              className="relative group min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
             >
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80"
-                alt="Alex Morgan"
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-[#FAD8C4] group-hover:ring-[#3A2AD9] transition-all"
+              <UserAvatar
+                name={profile?.displayName || 'Alex Morgan'}
+                src={profile?.avatarUrl}
+                sizeClass="w-9 h-9"
+                textClass="text-xs"
+                ringClass="ring-2 ring-[#FAD8C4] group-hover:ring-[#3B2FD6] transition-all motion-reduce:transition-none"
               />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
+              <span className="sr-only">Profile</span>
             </button>
           </div>
         </div>

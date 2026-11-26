@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
 import PickUpSection from './components/PickUpSection';
@@ -7,6 +7,7 @@ import MyFilesSection from './components/MyFilesSection';
 import LibrarySection from './components/LibrarySection';
 import SavedBooksSection from './components/SavedBooksSection';
 import HighlightsSection from './components/HighlightsSection';
+import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
 import Footer from './components/Footer';
 import MobileBottomNav from './components/MobileBottomNav';
 import SearchModal from './components/SearchModal';
@@ -16,15 +17,40 @@ import PreferencesModal from './components/PreferencesModal';
 import ProfileModal from './components/ProfileModal';
 import ReaderView from './components/ReaderView';
 
+const INITIAL_PROFILE = {
+  displayName: 'Alex Morgan',
+  email: 'alex.morgan@neuroread.app',
+  avatarUrl:
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&h=240&q=80',
+  membershipBadge: 'Inclusive Library Member',
+};
+
 export default function App() {
+  // User Profile & Audio Defaults State
+  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [audioDefaults, setAudioDefaults] = useState({
+    voiceId: 'system-default',
+    playbackSpeed: 1.0,
+  });
+
+  // Shared Library Collections (used for real Profile counts & data export)
+  const [savedItems, setSavedItems] = useState(INITIAL_SAVED_ITEMS);
+  const [highlights, setHighlights] = useState(INITIAL_HIGHLIGHTS);
+
   // Accessibility & Preferences State
-  const [fontMode, setFontMode] = useState('inter'); // 'inter' | 'dyslexic'
+  const [fontMode, setFontMode] = useState('inter'); // 'inter' | 'dyslexic' | 'lexend' | 'atkinson'
   const [textSize, setTextSize] = useState(0); // -1, 0, 1, 2, 3
+  const [lineSpacing, setLineSpacing] = useState('relaxed'); // 'compact' | 'relaxed' | 'spacious'
+  const [readerTheme, setReaderTheme] = useState('cream'); // 'cream' | 'sky' | 'sage' | 'dark' | 'contrast'
   const [focusMode, setFocusMode] = useState(false);
 
   // Navigation State
   const [activeNav, setActiveNav] = useState('home');
   const [readerBook, setReaderBook] = useState(null);
+  const [accountNotice, setAccountNotice] = useState('');
+  const [highlightsFromProfile, setHighlightsFromProfile] = useState(false);
+  const navBeforeHighlightsRef = useRef('home');
+  const skipNextHighlightsPopRef = useRef(false);
 
   // Modals State
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -34,19 +60,74 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedAudioBook, setSelectedAudioBook] = useState(null);
 
-  // Keyboard shortcut: Ctrl+K or Cmd+K to open search
+  const handleNavChange = (nextNav) => {
+    setHighlightsFromProfile(false);
+    setActiveNav(nextNav);
+  };
+
+  const handleBackToProfileFromHighlights = useCallback((fromPopState = false) => {
+    setHighlightsFromProfile(false);
+    setActiveNav(navBeforeHighlightsRef.current || 'home');
+    setIsProfileOpen(true);
+    if (!fromPopState && window.history.state?.neuroreadScreen === 'highlights-from-profile') {
+      skipNextHighlightsPopRef.current = true;
+      window.history.back();
+    }
+  }, []);
+
+  // Keyboard shortcut: Ctrl+K or Cmd+K to open search; Esc on Highlights opened from Profile returns to Profile
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsSearchOpen((prev) => !prev);
+        return;
+      }
+      if (
+        e.key === 'Escape' &&
+        activeNav === 'highlights' &&
+        highlightsFromProfile &&
+        !isSearchOpen &&
+        !isAddFileOpen &&
+        !isAudioPlayerOpen &&
+        !isPreferencesOpen &&
+        !isProfileOpen &&
+        !readerBook
+      ) {
+        e.preventDefault();
+        handleBackToProfileFromHighlights(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [
+    activeNav,
+    highlightsFromProfile,
+    isSearchOpen,
+    isAddFileOpen,
+    isAudioPlayerOpen,
+    isPreferencesOpen,
+    isProfileOpen,
+    readerBook,
+    handleBackToProfileFromHighlights,
+  ]);
 
-  // Text scaling class mapping
+  // Browser back button support when Highlights was opened from Profile
+  useEffect(() => {
+    const handlePopState = () => {
+      if (skipNextHighlightsPopRef.current) {
+        skipNextHighlightsPopRef.current = false;
+        return;
+      }
+      if (activeNav === 'highlights' && highlightsFromProfile) {
+        handleBackToProfileFromHighlights(true);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeNav, highlightsFromProfile, handleBackToProfileFromHighlights]);
+
+  // Text scaling & font class mapping
   const textSizeClasses = {
     '-1': 'text-[92%]',
     0: 'text-[100%]',
@@ -54,6 +135,21 @@ export default function App() {
     2: 'text-[116%]',
     3: 'text-[124%]',
   }[textSize] || 'text-[100%]';
+
+  const fontClass =
+    {
+      dyslexic: 'font-dyslexic',
+      lexend: 'font-lexend',
+      atkinson: 'font-atkinson',
+      inter: '',
+    }[fontMode] || '';
+
+  const lineSpacingClass =
+    {
+      compact: 'leading-normal',
+      relaxed: 'leading-relaxed',
+      spacious: 'leading-loose',
+    }[lineSpacing] || 'leading-relaxed';
 
   // Handlers
   const handleOpenAudioBook = (book) => {
@@ -66,12 +162,82 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleUploadAvatar = async (croppedDataUrl) => {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    setProfile((prev) => ({ ...prev, avatarUrl: croppedDataUrl }));
+  };
+
+  const handleRemoveAvatar = () => {
+    setProfile((prev) => ({ ...prev, avatarUrl: '' }));
+  };
+
+  const handleDownloadData = () => {
+    const exportPayload = {
+      exportedAt: new Date().toISOString(),
+      profile: {
+        displayName: profile.displayName,
+        email: profile.email,
+      },
+      accessibilityPreferences: {
+        fontMode,
+        textSize,
+        lineSpacing,
+        readerTheme,
+        focusMode,
+      },
+      audioDefaults,
+      savedBooks: savedItems.map((b) => ({ id: b.id, title: b.title, author: b.author })),
+      highlights,
+    };
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'neuroread-account-data.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSignOut = () => {
+    setAccountNotice('You have signed out of your session.');
+    setTimeout(() => setAccountNotice(''), 4000);
+  };
+
+  const handleDeleteAccount = () => {
+    setProfile({
+      ...INITIAL_PROFILE,
+      displayName: 'Guest Reader',
+      email: 'guest@neuroread.app',
+      avatarUrl: '',
+    });
+    setSavedItems([]);
+    setHighlights([]);
+    setAccountNotice('Your account data has been cleared from this session.');
+    setTimeout(() => setAccountNotice(''), 5000);
+  };
+
+  const accessibilityState = {
+    fontMode,
+    textSize,
+    lineSpacing,
+    readerTheme,
+    focusMode,
+  };
+
+  const handleChangeAccessibility = (patch) => {
+    if ('fontMode' in patch) setFontMode(patch.fontMode);
+    if ('textSize' in patch) setTextSize(patch.textSize);
+    if ('lineSpacing' in patch) setLineSpacing(patch.lineSpacing);
+    if ('readerTheme' in patch) setReaderTheme(patch.readerTheme);
+    if ('focusMode' in patch) setFocusMode(patch.focusMode);
+  };
+
   return (
-    <div
-      className={`min-h-screen bg-white text-[#141416] ${
-        fontMode === 'dyslexic' ? 'font-dyslexic' : ''
-      }`}
-    >
+    <div className={`min-h-screen bg-white text-[#141416] ${fontClass} ${lineSpacingClass}`}>
       {readerBook ? (
         /* Dedicated 3-Pane / Mobile-Tabbed Accessible Reader View */
         <ReaderView
@@ -80,6 +246,9 @@ export default function App() {
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenAddFile={() => setIsAddFileOpen(true)}
           onOpenProfile={() => setIsProfileOpen(true)}
+          defaultTheme={readerTheme}
+          defaultFont={fontMode === 'inter' ? 'lexend' : fontMode}
+          defaultSpeed={audioDefaults.playbackSpeed}
         />
       ) : (
         /* App Frame */
@@ -87,14 +256,27 @@ export default function App() {
           {/* Top Horizontal Header / Menu Bar */}
           <Navbar
             activeNav={activeNav}
-            setActiveNav={setActiveNav}
+            setActiveNav={handleNavChange}
             onOpenSearch={() => setIsSearchOpen(true)}
             onOpenProfile={() => setIsProfileOpen(true)}
             onOpenVoiceReader={() => {
               setSelectedAudioBook(null);
               setIsAudioPlayerOpen(true);
             }}
+            profile={profile}
           />
+
+          {accountNotice && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4"
+            >
+              <div className="bg-[#F9F7F2] border border-[#E2DDD2] rounded-2xl px-4 py-3 text-sm text-[#141416]">
+                {accountNotice}
+              </div>
+            </div>
+          )}
 
           {/* Main Centered Container */}
           <div className="flex-1 flex max-w-[1280px] w-full mx-auto">
@@ -114,10 +296,21 @@ export default function App() {
                   onOpenReader={handleOpenReader}
                   onOpenAudio={handleOpenAudioBook}
                   onExploreLibrary={() => setActiveNav('library')}
+                  savedItems={savedItems}
+                  setSavedItems={setSavedItems}
                 />
               ) : activeNav === 'highlights' ? (
                 /* Highlights View */
-                <HighlightsSection onOpenReader={handleOpenReader} />
+                <HighlightsSection
+                  onOpenReader={handleOpenReader}
+                  highlights={highlights}
+                  setHighlights={setHighlights}
+                  onBackToProfile={
+                    highlightsFromProfile
+                      ? () => handleBackToProfileFromHighlights(false)
+                      : undefined
+                  }
+                />
               ) : (
                 /* Home View */
                 <>
@@ -201,8 +394,9 @@ export default function App() {
           {/* Mobile Bottom Navigation Bar (< 768px) */}
           <MobileBottomNav
             activeNav={activeNav}
-            setActiveNav={setActiveNav}
+            setActiveNav={handleNavChange}
             onOpenProfile={() => setIsProfileOpen(true)}
+            profile={profile}
           />
         </div>
       )}
@@ -226,6 +420,7 @@ export default function App() {
         isOpen={isAudioPlayerOpen}
         onClose={() => setIsAudioPlayerOpen(false)}
         book={selectedAudioBook}
+        defaultSpeed={audioDefaults.playbackSpeed}
       />
 
       <PreferencesModal
@@ -235,6 +430,10 @@ export default function App() {
         setFontMode={setFontMode}
         textSize={textSize}
         setTextSize={setTextSize}
+        lineSpacing={lineSpacing}
+        setLineSpacing={setLineSpacing}
+        readerTheme={readerTheme}
+        setReaderTheme={setReaderTheme}
         focusMode={focusMode}
         setFocusMode={setFocusMode}
       />
@@ -242,14 +441,26 @@ export default function App() {
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
-        onOpenPreferences={() => {
-          setIsProfileOpen(false);
-          setIsPreferencesOpen(true);
-        }}
+        profile={profile}
+        onSaveProfile={(updated) => setProfile((prev) => ({ ...prev, ...updated }))}
+        onUploadAvatar={handleUploadAvatar}
+        onRemoveAvatar={handleRemoveAvatar}
+        audioDefaults={audioDefaults}
+        onSaveAudioDefaults={setAudioDefaults}
+        accessibilityState={accessibilityState}
+        onChangeAccessibility={handleChangeAccessibility}
+        savedCount={savedItems.length}
+        highlightsCount={highlights.length}
         onOpenHighlights={() => {
+          navBeforeHighlightsRef.current = activeNav;
+          setHighlightsFromProfile(true);
           setIsProfileOpen(false);
           setActiveNav('highlights');
+          window.history.pushState({ neuroreadScreen: 'highlights-from-profile' }, '');
         }}
+        onDownloadData={handleDownloadData}
+        onSignOut={handleSignOut}
+        onDeleteAccount={handleDeleteAccount}
       />
     </div>
   );
