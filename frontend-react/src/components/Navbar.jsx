@@ -20,7 +20,7 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#E5DFD3] transition-colors">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Logo */}
         <button
           onClick={() => setActiveNav?.('home')}

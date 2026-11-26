@@ -261,7 +261,7 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
           {paginatedFiles.map((file) => {
             const hasProgress = typeof file.progressPercent === 'number';
             const theme = FORMAT_THEMES[file.format] || {

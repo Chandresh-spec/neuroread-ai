@@ -62,7 +62,7 @@ export default function Footer({ onNavigate, onOpenPreferences }) {
 
   return (
     <footer
-      className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 mt-6 pb-24 md:pb-8"
+      className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 mt-6 pb-24 md:pb-8"
       onClick={() => isLangOpen && setIsLangOpen(false)}
     >
       <div className="relative overflow-hidden bg-gradient-to-b from-[#FAF8FF] via-[#F4F0FE] to-[#ECE6FC] border border-[#DDD6F8] rounded-[24px] sm:rounded-[28px] px-5 py-6 sm:px-8 sm:py-8 lg:px-10 shadow-[0_12px_36px_rgba(58,42,217,0.06)]">

@@ -59,7 +59,7 @@ export default function CuriositySection({ onSelectBook, onExploreAll }) {
       </div>
 
       {/* 2-Column on Mobile, 3 on Tablet, 4 on Desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         {filteredBooks.map((book) => {
           const isBookmarked = !!bookmarks[book.id];
 

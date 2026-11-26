@@ -313,7 +313,7 @@ export default function App() {
             <div
               role="status"
               aria-live="polite"
-              className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 pt-4"
+              className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 pt-4"
             >
               <div className="bg-white border border-[#E4E4E7] rounded-md px-4 py-3 text-sm text-[#141416]">
                 {accountNotice}
@@ -322,8 +322,8 @@ export default function App() {
           )}
 
           {/* Main Centered Container */}
-          <div className="flex-1 flex max-w-[1280px] w-full mx-auto">
-            <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-6">
+          <div className="flex-1 flex w-full">
+            <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-10 xl:px-12 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-6">
               {activeNav === 'library' ? (
                 <LibrarySection onOpenReader={handleOpenReader} />
               ) : activeNav === 'my-files' ? (

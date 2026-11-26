@@ -356,8 +356,10 @@ export default function LibrarySection({ onOpenReader }) {
         )}
 
         <div className="bg-white border border-[#E5DFD3] rounded-3xl p-5 sm:p-8 flex flex-col md:flex-row items-start gap-6 sm:gap-10 shadow-2xs">
-          <div className="w-48 sm:w-64 h-64 sm:h-80 rounded-2xl bg-[#193B32] text-white p-5 sm:p-6 flex items-end shadow-lg flex-shrink-0">
-            <h2 className="font-editorial text-xl sm:text-2xl font-bold tracking-tight leading-snug">
+          <div className="relative w-48 sm:w-64 h-64 sm:h-80 rounded-2xl overflow-hidden bg-[#193B32] text-white p-5 sm:p-6 flex items-end shadow-lg flex-shrink-0">
+            <img src={`./covers/${selectedBook.id}.jpg`} alt={selectedBook.title} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" aria-hidden="true" />
+            <h2 className="relative z-10 font-editorial text-xl sm:text-2xl font-bold tracking-tight leading-snug text-white">
               {selectedBook.title}
             </h2>
           </div>
@@ -567,7 +569,7 @@ export default function LibrarySection({ onOpenReader }) {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-4">
             {filteredBooks.map((book, idx) => {
               const isReadable = book.isFree || book.isPurchased;
               const palette = getCoverPalette(idx);
@@ -580,10 +582,13 @@ export default function LibrarySection({ onOpenReader }) {
                   <div>
                     {/* Compact Editorial Cover Box */}
                     <div
-                      className="h-28 sm:h-32 rounded-xl p-3.5 flex items-end mb-3 transition-transform group-hover:scale-[1.01]"
+                      className="relative h-28 sm:h-32 rounded-xl overflow-hidden p-3.5 flex items-end mb-3 transition-transform group-hover:scale-[1.01]"
                       style={{ backgroundColor: palette.bg, color: palette.text }}
                     >
-                      <h3 className="text-sm sm:text-[15px] font-bold leading-snug tracking-tight line-clamp-2">
+                      <img src={`./covers/${book.id}.jpg`} alt={book.title} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none" aria-hidden="true" />
+
+<h3 className="relative z-10 text-sm sm:text-[15px] font-bold leading-snug tracking-tight line-clamp-2 text-white">
                         {book.title}
                       </h3>
                     </div>

@@ -99,14 +99,31 @@ export default function SavedBooksSection({
 
     return (
       <div
-        className={`w-full h-full rounded-xl ${coverBg} text-white flex flex-col justify-between p-2.5 select-none shadow-sm`}
+        className={`relative w-full h-full rounded-xl overflow-hidden ${coverBg} text-white flex flex-col justify-between p-2.5 select-none shadow-sm`}
       >
-        <div>
-          <span className="inline-block whitespace-nowrap px-1.5 py-0.5 rounded bg-white/15 text-white text-[8.5px] font-bold uppercase tracking-wider">
+        {!isFile && (
+          <>
+            <img
+              src={`./covers/${item.id}.jpg`}
+              alt={item.title}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/25 pointer-events-none"
+              aria-hidden="true"
+            />
+          </>
+        )}
+        <div className="relative z-10">
+          <span className="inline-block whitespace-nowrap px-1.5 py-0.5 rounded bg-black/35 backdrop-blur-xs text-white text-[8.5px] font-bold uppercase tracking-wider">
             {badgeLabel}
           </span>
         </div>
-        <p className="text-[10px] font-bold text-white leading-snug line-clamp-3">
+        <p className="relative z-10 text-[10px] font-bold text-white leading-snug line-clamp-3">
           {item.title}
         </p>
       </div>
@@ -239,7 +256,7 @@ export default function SavedBooksSection({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
           {filteredItems.map((item) => {
             const hasProgress = typeof item.progressPercent === 'number';
             const isCompleted = item.progressPercent === 100;

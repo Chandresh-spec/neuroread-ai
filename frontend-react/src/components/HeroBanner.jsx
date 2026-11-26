@@ -17,7 +17,7 @@ export default function HeroBanner({ onExplore, onTryAudio }) {
             possibilities.
           </h1>
 
-          <p className="text-sm sm:text-[15.5px] text-[#5E5A54] max-w-md font-normal leading-relaxed mb-6 sm:mb-7">
+          <p className="text-sm sm:text-[15.5px] text-[#5E5A54] max-w-lg font-normal leading-relaxed mb-6 sm:mb-7">
             Discover great books with tools that adapt to how you think. Read at your pace,
             listen when you like, and make every page yours.
           </p>
@@ -42,30 +42,28 @@ export default function HeroBanner({ onExplore, onTryAudio }) {
 
         {/* Right Column: Pastel Lavender & Peach Book Showcase Card */}
         <div className="lg:col-span-6">
-          <div className="relative rounded-[28px] bg-[#E3DFFA] p-6 sm:p-10 min-h-[290px] sm:min-h-[340px] flex items-center justify-center overflow-hidden shadow-sm">
+          <div className="relative rounded-[28px] bg-[#E3DFFA] p-6 sm:p-10 min-h-[290px] sm:min-h-[340px] lg:min-h-[370px] flex items-center justify-center overflow-hidden shadow-sm">
             {/* Soft Peach Circle Accent (Bottom Left) */}
             <div className="absolute -bottom-16 -left-16 w-60 h-60 rounded-full bg-[#FAD8C4]/85 pointer-events-none" />
 
             {/* Tilted Books Pair */}
             <div className="relative z-10 flex items-center justify-center w-full max-w-[340px] h-[220px] sm:h-[250px]">
-              {/* Book 1: Deep Work (Dark Teal, tilted left) */}
-              <div className="w-36 sm:w-44 h-48 sm:h-56 rounded-2xl bg-[#193B32] text-white p-4 flex flex-col justify-between shadow-xl -rotate-6 -translate-x-6 translate-y-2 border border-white/10 select-none">
-                <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.12em] uppercase text-[#E4EDE9]">
-                  DEEP WORK
-                </p>
-                <p className="text-[8px] sm:text-[9px] tracking-widest uppercase text-[#9AB8AE]">
-                  CAL NEWPORT
-                </p>
+              {/* Book 1: Deep Work (Real Cover, tilted left) */}
+              <div className="w-36 sm:w-44 h-48 sm:h-56 rounded-2xl overflow-hidden bg-[#FAF8F4] shadow-xl -rotate-6 -translate-x-6 translate-y-2 border border-white/60 select-none">
+                <img
+                  src="./covers/deep-work.jpg"
+                  alt="Deep Work by Cal Newport"
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              {/* Book 2: The Psychology of Money (Terracotta, tilted right, overlapping) */}
-              <div className="w-36 sm:w-44 h-48 sm:h-56 rounded-2xl bg-[#7C371E] text-white p-4 flex flex-col justify-between shadow-2xl rotate-6 translate-x-6 -translate-y-2 border border-white/10 select-none">
-                <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.08em] uppercase leading-snug text-[#FBECE6]">
-                  THE PSYCHOLOGY OF MONEY
-                </p>
-                <p className="text-[8px] sm:text-[9px] tracking-widest uppercase text-[#E0B5A4]">
-                  MORGAN HOUSEL
-                </p>
+              {/* Book 2: The Psychology of Money (Real Cover, tilted right, overlapping) */}
+              <div className="w-36 sm:w-44 h-48 sm:h-56 rounded-2xl overflow-hidden bg-[#FAF8F4] shadow-2xl rotate-6 translate-x-6 -translate-y-2 border border-white/60 select-none">
+                <img
+                  src="./covers/psychology-of-money.jpg"
+                  alt="The Psychology of Money by Morgan Housel"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
