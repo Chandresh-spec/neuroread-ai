@@ -306,7 +306,7 @@ export default function App() {
 
           {/* Main Centered Container */}
           <div className="flex-1 flex max-w-[1280px] w-full mx-auto">
-            <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-10">
+            <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-6">
               {activeNav === 'library' ? (
                 <LibrarySection onOpenReader={handleOpenReader} />
               ) : activeNav === 'my-files' ? (
@@ -440,7 +440,10 @@ export default function App() {
           </div>
 
           {/* Full-Bleed Dark Editorial Footer */}
-          <Footer />
+          <Footer
+            onNavigate={handleNavChange}
+            onOpenPreferences={() => setIsPreferencesOpen(true)}
+          />
 
           {/* Mobile Bottom Navigation Bar (< 768px) */}
           <MobileBottomNav

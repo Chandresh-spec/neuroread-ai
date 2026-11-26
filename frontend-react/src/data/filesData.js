@@ -136,7 +136,7 @@ export const initialUserFiles = [
     size: '420 KB',
     sizeBytes: 430080,
     uploadedAt: 'Uploaded 5 days ago',
-    timestamp: Date.now() - 5 * 86400000,
+    timestamp: Date.now() - 5 * 86400000 - 3600000,
     tags: ['Checklist', 'Guide'],
     progressPercent: null,
     isBookmarked: false,
