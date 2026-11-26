@@ -6,6 +6,7 @@ import {
   Search,
 } from 'lucide-react';
 import BookCover from './BookCover';
+import AccountPageLayout from './AccountPageLayout';
 import { INITIAL_SAVED_ITEMS } from '../data/userCollections';
 
 export default function SavedBooksSection({
@@ -14,6 +15,7 @@ export default function SavedBooksSection({
   onExploreLibrary,
   savedItems: externalSavedItems,
   setSavedItems: setExternalSavedItems,
+  onBack,
 }) {
   const [internalSavedItems, setInternalSavedItems] = useState(INITIAL_SAVED_ITEMS);
   const savedItems = externalSavedItems ?? internalSavedItems;
@@ -47,7 +49,7 @@ export default function SavedBooksSection({
   };
 
   const tabs = [
-    { id: 'all', label: 'All Saved', count: savedItems.length },
+    { id: 'all', label: 'All saved', count: savedItems.length },
     { id: 'ebook', label: 'E-books', count: savedItems.filter((i) => i.savedType === 'ebook').length },
     { id: 'audiobook', label: 'Audiobooks', count: savedItems.filter((i) => i.savedType === 'audiobook').length },
     { id: 'file', label: 'Files', count: savedItems.filter((i) => i.savedType === 'file').length },
@@ -80,156 +82,139 @@ export default function SavedBooksSection({
   };
 
   return (
-    <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-200">
-      {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#E3DFFA] border border-[#3A2AD9]/20 flex items-center justify-center text-[#3A2AD9] flex-shrink-0">
-            <Bookmark className="w-5 h-5 fill-[#3A2AD9]" />
-          </div>
-          <div>
-            <h1 className="font-editorial text-2xl sm:text-3xl font-bold text-[#141416] tracking-tight leading-tight">
-              Saved Books
-            </h1>
-            <p className="text-xs sm:text-sm text-[#5E5A54] mt-0.5">
-              Books and documents you bookmarked to read or listen to later.
-            </p>
-          </div>
+    <AccountPageLayout
+      activePage="saved-books"
+      onBack={onBack}
+      title="Saved books"
+      subtitle="Books and documents you bookmarked to read or listen to later."
+      headerRight={
+        <div className="inline-flex items-center gap-2 border border-[#E4E4E7] rounded-full px-3.5 py-1.5 text-xs text-[#524E48]">
+          <span className="font-semibold text-[#141416]">{savedItems.length}</span>
+          <span>saved items</span>
         </div>
-
-        <div className="inline-flex items-center gap-2 bg-white border border-[#E5DFD3] rounded-full px-4 py-2 text-xs self-start sm:self-auto shadow-2xs">
-          <Bookmark className="w-3.5 h-3.5 text-[#3A2AD9]" />
-          <span className="font-bold text-[#141416]">{savedItems.length}</span>
-          <span className="text-[#6B665F]">saved items</span>
-        </div>
-      </div>
-
+      }
+    >
       {lastRemoved && (
-        <div className="bg-white border border-[#E5DFD3] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
-          <span className="text-[#5E5A54] truncate">
-            Removed <strong className="text-[#141416]">{lastRemoved.title}</strong> from Saved Books.
+        <div className="bg-white border border-[#E4E4E7] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
+          <span className="text-[#524E48] truncate">
+            Removed <strong className="text-[#141416]">{lastRemoved.title}</strong> from Saved books.
           </span>
           <button
+            type="button"
             onClick={handleUndoRemove}
-            className="text-[#3A2AD9] font-bold hover:underline flex-shrink-0"
+            className="min-h-[44px] px-2 text-[#3B2FD6] font-semibold hover:underline flex-shrink-0"
           >
             Undo
           </button>
         </div>
       )}
 
-      {/* 2. Tabs + Search Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5DFD3] pb-0.5">
-        <div className="flex items-center gap-5 sm:gap-7 overflow-x-auto scrollbar-none">
+      {/* Tabs + Search Toolbar (stacked vertically inside 720px column) */}
+      <div className="border-t border-[#E4E4E7] pt-6 space-y-4">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E4E7] pb-3">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-3 text-xs sm:text-sm font-bold transition-colors relative whitespace-nowrap flex items-center gap-1.5 ${
-                  isActive ? 'text-[#141416]' : 'text-[#6B665F] hover:text-[#141416]'
+                className={`min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors whitespace-nowrap flex items-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${
+                  isActive
+                    ? 'bg-[#ECEAFD] text-[#3B2FD6]'
+                    : 'text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5]'
                 }`}
               >
                 <span>{tab.label}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    isActive
-                      ? 'bg-[#EBE8FD] text-[#3A2AD9]'
-                      : 'bg-[#EAE4D7] text-[#6B665F]'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#3A2AD9] rounded-full" />
-                )}
+                <span className="text-xs opacity-80">({tab.count})</span>
               </button>
             );
           })}
         </div>
 
-        <div className="pb-2.5 sm:pb-2 w-full sm:w-60">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#7B756D] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search saved books..."
-              className="w-full bg-white border border-[#DED8CB] rounded-full pl-8 pr-3 py-1.5 text-xs text-[#141416] placeholder-[#8C867E] focus:outline-none focus:border-[#3A2AD9] transition-colors"
-            />
-          </div>
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-[#524E48] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+          <input
+            type="text"
+            aria-label="Search saved books"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search saved books..."
+            className="w-full min-h-[44px] bg-white border border-[#D4D4D8] rounded-md pl-9 pr-3 py-2 text-sm text-[#141416] placeholder-[#6B665F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B2FD6]"
+          />
         </div>
       </div>
 
-      {/* 3. Saved Items Display */}
+      {/* Saved Items Display */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white border border-[#E5DFD3] rounded-2xl p-10 text-center shadow-2xs">
-          <Bookmark className="w-9 h-9 text-[#8C867E] mx-auto mb-2.5" />
-          <h3 className="text-base font-bold text-[#141416] mb-1">No saved books here</h3>
-          <p className="text-xs text-[#6B665F] max-w-sm mx-auto mb-4">
+        <div className="bg-white border border-[#E4E4E7] rounded-2xl p-8 text-center">
+          <Bookmark className="w-8 h-8 text-[#524E48] mx-auto mb-2.5" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-[#141416] mb-1">No saved books here</h2>
+          <p className="text-sm text-[#524E48] max-w-sm mx-auto mb-4">
             Bookmark books from the Library or Home feed to keep them handy for later.
           </p>
           <button
+            type="button"
             onClick={onExploreLibrary}
-            className="bg-[#3A2AD9] hover:bg-[#3021C2] text-white font-bold text-xs px-5 py-2 rounded-full transition-all"
+            className="w-full sm:w-auto min-h-[44px] bg-[#3B2FD6] hover:bg-[#3126B8] text-white font-semibold text-sm px-5 py-2.5 rounded-md transition-colors"
           >
             Browse Library
           </button>
         </div>
       ) : (
         <>
-          {/* Mobile Compact List Layout */}
+          {/* Mobile List Layout (< 640px) */}
           <div className="flex sm:hidden flex-col gap-3">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
                 onClick={() => onOpenReader(item)}
-                className="bg-white border border-[#E5DFD3] rounded-2xl p-3 flex items-center gap-3 cursor-pointer hover:border-[#CFC7B8] transition-colors shadow-2xs"
+                className="bg-white border border-[#E4E4E7] rounded-2xl p-3 flex items-center gap-3 cursor-pointer"
               >
                 <div className="w-[62px] h-[86px] flex-shrink-0">
                   {renderThumbnail(item, true)}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-[#7B756D] truncate">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#524E48] truncate">
                     {item.category}
                   </p>
-                  <h3 className="text-sm font-bold text-[#141416] truncate mt-0.5">
+                  <h2 className="text-sm font-semibold text-[#141416] truncate mt-0.5">
                     {item.title}
-                  </h3>
-                  <p className="text-xs text-[#6B665F] truncate">{item.author}</p>
+                  </h2>
+                  <p className="text-xs text-[#524E48] truncate">{item.author}</p>
 
                   {typeof item.progressPercent === 'number' && (
                     <div className="mt-1.5 flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-[#EAE4D7] rounded-full overflow-hidden">
+                      <div className="flex-1 h-1 bg-[#E4E4E7] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#3A2AD9] rounded-full"
+                          className="h-full bg-[#3B2FD6] rounded-full"
                           style={{ width: `${item.progressPercent}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-[#5E5A54] font-mono">
+                      <span className="text-[11px] text-[#524E48]">
                         {item.progressPercent}%
                       </span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                   <button
+                    type="button"
                     onClick={(e) => handleRemoveBookmark(e, item)}
-                    aria-label="Remove from saved"
-                    className="p-1.5 rounded-lg bg-[#EBE8FD] text-[#3A2AD9]"
+                    aria-label={`Remove ${item.title} from saved`}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md bg-[#ECEAFD] text-[#3B2FD6]"
                   >
-                    <Bookmark className="w-3.5 h-3.5 fill-[#3A2AD9]" />
+                    <Bookmark className="w-4 h-4 fill-[#3B2FD6] pointer-events-none" aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpenReader(item);
                     }}
-                    className="px-3.5 py-1 rounded-full bg-[#141416] text-white font-bold text-[11px]"
+                    className="min-h-[44px] px-4 rounded-md bg-[#141416] text-white font-semibold text-xs"
                   >
                     Read
                   </button>
@@ -238,48 +223,50 @@ export default function SavedBooksSection({
             ))}
           </div>
 
-          {/* Desktop & Tablet Grid */}
-          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Tablet & Desktop Grid (fits 720px cleanly in 2–3 cols) */}
+          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 gap-4">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
                 onClick={() => onOpenReader(item)}
-                className="bg-white hover:bg-[#FAF8F5] border border-[#E5DFD3] hover:border-[#CFC7B8] rounded-2xl p-3.5 flex flex-col justify-between transition-all cursor-pointer group shadow-2xs hover:shadow-md"
+                className="bg-white border border-[#E4E4E7] hover:border-[#A1A1AA] rounded-2xl p-3.5 flex flex-col justify-between transition-colors cursor-pointer group"
               >
                 <div>
                   <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3">
                     {renderThumbnail(item, false)}
 
                     <button
+                      type="button"
                       onClick={(e) => handleRemoveBookmark(e, item)}
-                      title="Remove from Saved Books"
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 text-[#3A2AD9] hover:bg-white shadow-sm transition-all"
+                      aria-label={`Remove ${item.title} from Saved books`}
+                      title="Remove from Saved books"
+                      className="absolute top-2 right-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-white/95 text-[#3B2FD6] hover:bg-white shadow-sm"
                     >
-                      <Bookmark className="w-3.5 h-3.5 fill-[#3A2AD9]" />
+                      <Bookmark className="w-4 h-4 fill-[#3B2FD6] pointer-events-none" aria-hidden="true" />
                     </button>
                   </div>
 
-                  <p className="text-[9.5px] font-bold tracking-wider text-[#7B756D] uppercase truncate">
+                  <p className="text-[10px] font-semibold tracking-wider text-[#524E48] uppercase truncate">
                     {item.category}
                   </p>
-                  <h3 className="text-sm font-bold text-[#141416] tracking-tight truncate group-hover:text-[#3A2AD9] transition-colors mt-0.5">
+                  <h2 className="text-sm font-semibold text-[#141416] tracking-tight truncate group-hover:text-[#3B2FD6] transition-colors mt-0.5">
                     {item.title}
-                  </h3>
-                  <p className="text-xs text-[#6B665F] truncate mt-0.5">
+                  </h2>
+                  <p className="text-xs text-[#524E48] truncate mt-0.5">
                     {item.author}
                   </p>
 
                   {typeof item.progressPercent === 'number' && (
                     <div className="mt-2.5">
-                      <div className="flex items-center justify-between text-[10px] text-[#6B665F] mb-1">
+                      <div className="flex items-center justify-between text-[11px] text-[#524E48] mb-1">
                         <span>{item.savedAt}</span>
-                        <span className="font-bold text-[#141416] font-mono">
+                        <span className="font-semibold text-[#141416]">
                           {item.progressPercent}%
                         </span>
                       </div>
-                      <div className="w-full h-1 bg-[#EAE4D7] rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-[#E4E4E7] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#3A2AD9] rounded-full"
+                          className="h-full bg-[#3B2FD6] rounded-full"
                           style={{ width: `${item.progressPercent}%` }}
                         />
                       </div>
@@ -287,34 +274,39 @@ export default function SavedBooksSection({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 mt-3 border-t border-[#EEE9DF]">
+                <div className="flex items-center gap-2 pt-3 mt-3 border-t border-[#E4E4E7]">
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpenReader(item);
                     }}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#141416] hover:bg-[#2a2a2f] text-white font-semibold text-xs py-2 rounded-full transition-all active:scale-95"
+                    className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 bg-[#141416] hover:bg-[#2a2a2f] text-white font-semibold text-xs rounded-md transition-colors"
                   >
-                    <BookOpen className="w-3.5 h-3.5" />
+                    <BookOpen className="w-3.5 h-3.5 pointer-events-none" aria-hidden="true" />
                     <span>{item.progressPercent ? 'Continue' : 'Read'}</span>
                   </button>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenAudio(item);
-                    }}
-                    title="Listen in Audio Player"
-                    className="p-2 rounded-full bg-[#FAF8F5] hover:bg-[#EBE8FD] border border-[#DED8CB] text-[#5E5A54] hover:text-[#3A2AD9] transition-colors"
-                  >
-                    <Headphones className="w-3.5 h-3.5" />
-                  </button>
+                  {item.hasAudio && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenAudio(item);
+                      }}
+                      aria-label={`Listen to ${item.title}`}
+                      title="Listen to audiobook"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md bg-white hover:bg-[#ECEAFD] border border-[#D4D4D8] text-[#524E48] hover:text-[#3B2FD6] transition-colors"
+                    >
+                      <Headphones className="w-4 h-4 pointer-events-none" aria-hidden="true" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </>
       )}
-    </div>
+    </AccountPageLayout>
   );
 }

@@ -4,7 +4,7 @@ import { Globe, ChevronDown } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="w-full bg-[#141417] text-neutral-400 mt-10 pt-12 pb-28 md:pb-10 border-t border-[#222227]">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 mb-10">
           {/* Brand & Mission Statement */}
           <div className="md:col-span-5">

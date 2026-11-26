@@ -7,10 +7,10 @@ import {
   Trash2,
   BookOpen,
   MessageSquarePlus,
-  ArrowLeft,
   ArrowRight,
   Edit3,
 } from 'lucide-react';
+import AccountPageLayout from './AccountPageLayout';
 import { curatedBooks, readingHistory } from '../data/booksData';
 import { libraryBooks } from '../data/libraryBooksData';
 import { INITIAL_HIGHLIGHTS } from '../data/userCollections';
@@ -120,102 +120,78 @@ export default function HighlightsSection({
   };
 
   return (
-    <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-200">
-      {onBackToProfile && (
-        <div>
-          <button
-            type="button"
-            onClick={onBackToProfile}
-            aria-label="Back to Profile"
-            className="inline-flex items-center gap-2 min-h-[44px] px-3 py-2 -ml-3 rounded-full text-sm font-semibold text-[#3B2FD6] hover:bg-[#ECEAFD]/60 transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
-          >
-            <ArrowLeft className="w-4 h-4 pointer-events-none" aria-hidden="true" />
-            <span>Back to Profile</span>
-          </button>
+    <AccountPageLayout
+      activePage="highlights"
+      onBack={onBackToProfile}
+      title="Highlights"
+      subtitle="Key passages, quotes, and notes saved across your reading sessions."
+      headerRight={
+        <div className="inline-flex items-center gap-2 border border-[#E4E4E7] rounded-full px-3.5 py-1.5 text-xs text-[#524E48]">
+          <span className="font-semibold text-[#141416]">{highlights.length}</span>
+          <span>highlights</span>
+          <span aria-hidden="true">·</span>
+          <span className="font-semibold text-[#141416]">{uniqueBooks.length}</span>
+          <span>books</span>
         </div>
-      )}
-
-      {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#E3DFFA] border border-[#3A2AD9]/20 flex items-center justify-center text-[#3A2AD9] flex-shrink-0">
-            <Highlighter className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="font-editorial text-2xl sm:text-3xl font-bold text-[#141416] tracking-tight leading-tight">
-              Highlights
-            </h1>
-            <p className="text-xs sm:text-sm text-[#5E5A54] mt-0.5">
-              Key passages, quotes, and notes saved across your reading sessions.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="bg-white border border-[#E5DFD3] rounded-full px-4 py-2 text-xs flex items-center gap-2 shadow-2xs">
-            <Highlighter className="w-3.5 h-3.5 text-[#3A2AD9]" />
-            <span className="font-bold text-[#141416]">{highlights.length}</span>
-            <span className="text-[#6B665F]">highlights</span>
-            <span className="text-[#CFC7B8]">·</span>
-            <span className="font-bold text-[#141416]">{uniqueBooks.length}</span>
-            <span className="text-[#6B665F]">books</span>
-          </div>
-        </div>
-      </div>
-
+      }
+    >
       {lastDeleted && (
-        <div className="bg-white border border-[#E5DFD3] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
-          <span className="text-[#5E5A54] truncate">
+        <div className="bg-white border border-[#E4E4E7] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
+          <span className="text-[#524E48] truncate">
             Deleted highlight from <strong className="text-[#141416]">{lastDeleted.bookTitle}</strong>.
           </span>
           <button
+            type="button"
             onClick={handleUndoDelete}
-            className="text-[#3A2AD9] font-bold hover:underline flex-shrink-0"
+            className="min-h-[44px] px-2 text-[#3B2FD6] font-semibold hover:underline flex-shrink-0"
           >
             Undo
           </button>
         </div>
       )}
 
-      {/* 2. Filter & Search Toolbar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+      {/* Filter & Search Toolbar (stacked vertically inside 720px column) */}
+      <div className="border-t border-[#E4E4E7] pt-6 space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => setActiveColor('all')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
+            className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-semibold transition-colors border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${
               activeColor === 'all'
-                ? 'bg-[#141416] text-white border-[#141416] shadow-2xs'
-                : 'bg-white hover:bg-[#FAF8F5] text-[#5E5A54] border-[#DED8CB]'
+                ? 'bg-[#141416] text-white border-[#141416]'
+                : 'bg-white hover:bg-[#F4F4F5] text-[#524E48] border-[#D4D4D8]'
             }`}
           >
-            All Colors
+            All colors
           </button>
           {Object.entries(COLOR_STYLES).map(([key, cfg]) => {
             const isActive = activeColor === key;
             return (
               <button
                 key={key}
+                type="button"
                 onClick={() => setActiveColor(key)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
+                className={`min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${
                   isActive
-                    ? 'bg-[#EBE8FD] text-[#3A2AD9] border-[#3A2AD9]'
-                    : 'bg-white hover:bg-[#FAF8F5] text-[#5E5A54] border-[#DED8CB]'
+                    ? 'bg-[#ECEAFD] text-[#3B2FD6] border-[#3B2FD6]'
+                    : 'bg-white hover:bg-[#F4F4F5] text-[#524E48] border-[#D4D4D8]'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.dot }} />
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.dot }} aria-hidden="true" />
                 <span>{cfg.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
           <select
+            aria-label="Filter highlights by book"
             value={selectedBook}
             onChange={(e) => setSelectedBook(e.target.value)}
-            className="bg-white border border-[#DED8CB] rounded-full px-3.5 py-2 text-xs text-[#141416] font-semibold focus:outline-none focus:border-[#3A2AD9]"
+            className="w-full sm:w-56 min-h-[44px] bg-white border border-[#D4D4D8] rounded-md px-3.5 py-2 text-sm text-[#141416] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B2FD6]"
           >
-            <option value="all">All Books ({uniqueBooks.length})</option>
+            <option value="all">All books ({uniqueBooks.length})</option>
             {uniqueBooks.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.title}
@@ -223,45 +199,46 @@ export default function HighlightsSection({
             ))}
           </select>
 
-          <div className="relative sm:w-60">
-            <Search className="w-3.5 h-3.5 text-[#7B756D] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-4 h-4 text-[#524E48] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
             <input
               type="text"
+              aria-label="Search quotes or notes"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search quotes or notes..."
-              className="w-full bg-white border border-[#DED8CB] rounded-full pl-8 pr-3 py-2 text-xs text-[#141416] placeholder-[#8C867E] focus:outline-none focus:border-[#3A2AD9] transition-colors"
+              className="w-full min-h-[44px] bg-white border border-[#D4D4D8] rounded-md pl-9 pr-3 py-2 text-sm text-[#141416] placeholder-[#6B665F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B2FD6]"
             />
           </div>
         </div>
       </div>
 
-      {/* 3. Highlights Grid */}
+      {/* Highlights List / Grid */}
       {filteredHighlights.length === 0 ? (
-        <div className="bg-white border border-[#E5DFD3] rounded-2xl p-10 text-center shadow-2xs">
-          <Highlighter className="w-9 h-9 text-[#8C867E] mx-auto mb-2.5" />
-          <h3 className="text-base font-bold text-[#141416] mb-1">No matching highlights</h3>
-          <p className="text-xs text-[#6B665F] max-w-sm mx-auto">
+        <div className="bg-white border border-[#E4E4E7] rounded-2xl p-8 text-center">
+          <Highlighter className="w-8 h-8 text-[#524E48] mx-auto mb-2.5" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-[#141416] mb-1">No matching highlights</h2>
+          <p className="text-sm text-[#524E48] max-w-sm mx-auto">
             Try clearing your search filter, or highlight passages while reading any book.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filteredHighlights.map((hl) => {
             const colorCfg = COLOR_STYLES[hl.color] || COLOR_STYLES.indigo;
             const isEditing = editingNoteId === hl.id;
 
             return (
-              <div
+              <article
                 key={hl.id}
-                className="bg-white hover:bg-[#FAF8F5] border border-[#E5DFD3] hover:border-[#CFC7B8] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all shadow-2xs hover:shadow-md"
+                className="bg-white border border-[#E4E4E7] rounded-2xl p-4 sm:p-5 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
                           style={{
                             backgroundColor: colorCfg.badgeBg,
                             color: colorCfg.badgeText,
@@ -270,22 +247,23 @@ export default function HighlightsSection({
                           <span
                             className="w-1.5 h-1.5 rounded-full"
                             style={{ backgroundColor: colorCfg.dot }}
+                            aria-hidden="true"
                           />
                           {hl.bookTitle}
                         </span>
-                        <span className="text-[11px] text-[#6B665F] font-medium">
+                        <span className="text-xs text-[#524E48]">
                           {hl.location}
                         </span>
                       </div>
                     </div>
 
-                    <span className="text-[10.5px] text-[#8C867E] flex-shrink-0">
+                    <span className="text-xs text-[#524E48] flex-shrink-0">
                       {hl.savedAt}
                     </span>
                   </div>
 
                   <blockquote
-                    className="pl-3.5 py-0.5 text-sm sm:text-[15px] text-[#141416] leading-relaxed font-medium"
+                    className="pl-3.5 py-0.5 text-sm text-[#141416] leading-relaxed"
                     style={{ borderLeft: `3px solid ${colorCfg.border}` }}
                   >
                     “{hl.quote}”
@@ -299,88 +277,96 @@ export default function HighlightsSection({
                           value={noteDraft}
                           onChange={(e) => setNoteDraft(e.target.value)}
                           placeholder="Write your reflection or study note..."
-                          className="w-full bg-[#FAF8F5] border border-[#DED8CB] rounded-xl p-2.5 text-xs text-[#141416] focus:outline-none focus:border-[#3A2AD9]"
+                          className="w-full bg-white border border-[#D4D4D8] rounded-md p-2.5 text-sm text-[#141416] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B2FD6]"
                         />
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
                           <button
+                            type="button"
                             onClick={() => setEditingNoteId(null)}
-                            className="px-3 py-1 rounded-lg text-xs text-[#6B665F] hover:text-[#141416]"
+                            className="w-full sm:w-auto min-h-[44px] px-3 rounded-md border border-[#D4D4D8] text-xs text-[#524E48] hover:text-[#141416]"
                           >
                             Cancel
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleSaveNote(hl.id)}
-                            className="px-3.5 py-1 rounded-full bg-[#3A2AD9] text-white font-bold text-xs"
+                            className="w-full sm:w-auto min-h-[44px] px-4 rounded-md bg-[#3B2FD6] hover:bg-[#3126B8] text-white font-semibold text-xs"
                           >
-                            Save Note
+                            Save note
                           </button>
                         </div>
                       </div>
                     ) : hl.note ? (
-                      <div
+                      <button
+                        type="button"
                         onClick={() => handleStartEditNote(hl)}
-                        className="bg-[#F5F1EA] border border-[#E5DFD3] hover:border-[#CFC7B8] rounded-xl px-3 py-2 text-xs text-[#47433E] flex items-start justify-between gap-2 cursor-pointer group"
+                        className="w-full text-left bg-[#FAFAFA] border border-[#E4E4E7] hover:border-[#A1A1AA] rounded-xl px-3 py-2.5 text-xs text-[#524E48] flex items-start justify-between gap-2 group min-h-[44px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
                       >
                         <p className="leading-relaxed">
-                          <span className="text-[#8C867E] font-semibold mr-1.5">Note:</span>
+                          <span className="text-[#141416] font-semibold mr-1.5">Note:</span>
                           {hl.note}
                         </p>
-                        <Edit3 className="w-3 h-3 text-[#8C867E] group-hover:text-[#3A2AD9] flex-shrink-0 mt-0.5" />
-                      </div>
+                        <Edit3 className="w-3.5 h-3.5 text-[#524E48] group-hover:text-[#3B2FD6] flex-shrink-0 mt-0.5 pointer-events-none" aria-hidden="true" />
+                      </button>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => handleStartEditNote(hl)}
-                        className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#6B665F] hover:text-[#3A2AD9] transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-[44px] px-1 text-xs font-semibold text-[#524E48] hover:text-[#3B2FD6] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
                       >
-                        <MessageSquarePlus className="w-3.5 h-3.5" />
+                        <MessageSquarePlus className="w-3.5 h-3.5 pointer-events-none" aria-hidden="true" />
                         <span>Add a note</span>
                       </button>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-3 mt-4 border-t border-[#EEE9DF]">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-4 border-t border-[#E4E4E7]">
                   <button
+                    type="button"
                     onClick={() => onOpenReader(resolveBookForReader(hl))}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3A2AD9] hover:underline transition-colors"
+                    className="inline-flex items-center gap-1.5 min-h-[44px] text-xs font-semibold text-[#3B2FD6] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
                   >
-                    <BookOpen className="w-3.5 h-3.5" />
+                    <BookOpen className="w-3.5 h-3.5 pointer-events-none" aria-hidden="true" />
                     <span>Open in Reader</span>
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="w-3 h-3 pointer-events-none" aria-hidden="true" />
                   </button>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => handleCopy(hl)}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FAF8F5] hover:bg-[#EBE8FD] border border-[#E5DFD3] text-[#5E5A54] hover:text-[#3A2AD9] text-[11px] font-semibold transition-colors"
+                      className="inline-flex items-center gap-1 min-h-[44px] px-3 rounded-md border border-[#E4E4E7] hover:bg-[#F4F4F5] text-[#524E48] hover:text-[#141416] text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
                     >
                       {copiedId === hl.id ? (
                         <>
-                          <Check className="w-3 h-3 text-emerald-600" />
-                          <span className="text-emerald-600">Copied</span>
+                          <Check className="w-3.5 h-3.5 text-[#2F5947] pointer-events-none" aria-hidden="true" />
+                          <span className="text-[#2F5947]">Copied</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-3.5 h-3.5 pointer-events-none" aria-hidden="true" />
                           <span>Copy</span>
                         </>
                       )}
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleDelete(hl)}
+                      aria-label={`Delete highlight from ${hl.bookTitle}`}
                       title="Delete highlight"
-                      className="p-1.5 rounded-lg text-[#8C867E] hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-[#524E48] hover:text-[#8F291E] hover:bg-[#FDF4F2] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4 pointer-events-none" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       )}
-    </div>
+    </AccountPageLayout>
   );
 }
