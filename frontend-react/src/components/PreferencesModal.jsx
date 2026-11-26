@@ -1,5 +1,9 @@
-import React from 'react';
-import { X, Sliders, Check } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { X, Sliders } from 'lucide-react';
+import AccessibilityPanel from './AccessibilityPanel';
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export default function PreferencesModal({
   isOpen,
@@ -8,180 +12,128 @@ export default function PreferencesModal({
   setFontMode,
   textSize,
   setTextSize,
+  lineSpacing,
+  setLineSpacing,
+  readerTheme,
+  setReaderTheme,
   focusMode,
   setFocusMode,
 }) {
-  if (!isOpen) return null;
+  const dialogRef = useRef(null);
+  const headingRef = useRef(null);
+  const previousFocusRef = useRef(null);
 
-  const profiles = [
-    {
-      id: 'general',
-      name: 'General / Optimized',
-      desc: 'Balanced contrast and clean typography for comfortable everyday reading.',
-    },
-    {
-      id: 'dyslexia',
-      name: 'Dyslexia Friendly',
-      desc: 'Weighted letter bottoms, increased character spacing, and warm tone.',
-    },
-    {
-      id: 'adhd',
-      name: 'ADHD / Focus Mode',
-      desc: 'Ambient dimming, guiding ruler, and short paragraph sectioning.',
-    },
-    {
-      id: 'visual',
-      name: 'High Contrast / Sensitive Eyes',
-      desc: 'Crisp warm paper palette with deep ink text and calm indigo accents.',
-    },
-  ];
+  useEffect(() => {
+    if (!isOpen) return;
+    previousFocusRef.current = document.activeElement;
+    requestAnimationFrame(() => {
+      headingRef.current?.focus();
+    });
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusables = Array.from(
+          dialogRef.current.querySelectorAll(FOCUSABLE_SELECTOR)
+        ).filter((el) => el.offsetParent !== null);
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 transition-all"
+      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-[#FAF8F5] border border-[#E5DFD3] rounded-3xl shadow-2xl p-6 sm:p-7 relative max-h-[90vh] overflow-y-auto"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="accessibility-modal-title"
+        className="w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg bg-white border-t sm:border border-[#E4E4E7] rounded-none sm:rounded-3xl shadow-2xl relative overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-full text-[#6B665F] hover:text-[#141416] hover:bg-[#EAE4D7] transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Fixed Header */}
+        <div className="shrink-0 bg-white px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-[#E4E4E7] relative">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 z-20 w-11 h-11 min-w-[44px] min-h-[44px] p-2.5 flex items-center justify-center rounded-full text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5] transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
+          >
+            <X className="w-5 h-5 pointer-events-none" aria-hidden="true" />
+          </button>
 
-        <div className="flex items-center gap-2 mb-1 text-[#3A2AD9]">
-          <Sliders className="w-4 h-4" />
-          <span className="text-[11px] font-bold tracking-widest uppercase">
-            Reading Experience
-          </span>
-        </div>
+          <div className="pr-12">
+            <div className="flex items-center gap-2 mb-1 text-[#3B2FD6]">
+              <Sliders className="w-4 h-4 pointer-events-none" aria-hidden="true" />
+              <span className="text-xs font-semibold">Reading experience</span>
+            </div>
 
-        <h3 className="font-editorial text-2xl font-bold text-[#141416] tracking-tight mb-1">
-          Accessibility &amp; Preferences
-        </h3>
-        <p className="text-xs text-[#5E5A54] mb-6">
-          Tailor typography, focus guides, and cognitive accommodations to your mind.
-        </p>
-
-        <div className="space-y-3 mb-6">
-          <label className="text-xs font-bold text-[#141416] uppercase tracking-wider block">
-            Cognitive Reading Profile
-          </label>
-          <div className="grid grid-cols-1 gap-2.5">
-            {profiles.map((p) => {
-              const isSelected = fontMode === (p.id === 'dyslexia' ? 'dyslexic' : 'inter');
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => {
-                    if (p.id === 'dyslexia') {
-                      setFontMode('dyslexic');
-                    } else if (p.id === 'adhd') {
-                      setFocusMode(true);
-                      setFontMode('inter');
-                    } else {
-                      setFontMode('inter');
-                      setFocusMode(false);
-                    }
-                  }}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-[#EBE8FD]/60 border-[#3A2AD9] text-[#141416] shadow-2xs'
-                      : 'bg-white border-[#E5DFD3] hover:border-[#CFC7B8] text-[#141416]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">{p.name}</span>
-                    {isSelected && <Check className="w-4 h-4 text-[#3A2AD9]" />}
-                  </div>
-                  <p className="text-xs text-[#6B665F] leading-relaxed">{p.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <label className="text-xs font-bold text-[#141416] uppercase tracking-wider block mb-2">
-            Typeface
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setFontMode('inter')}
-              className={`p-3 rounded-xl border text-sm font-bold transition-all text-center ${
-                fontMode === 'inter'
-                  ? 'bg-[#141416] text-white border-[#141416]'
-                  : 'bg-white border-[#E5DFD3] text-[#5E5A54] hover:text-[#141416]'
-              }`}
+            <h2
+              id="accessibility-modal-title"
+              ref={headingRef}
+              tabIndex={-1}
+              className="font-editorial text-2xl font-bold text-[#141416] tracking-tight mb-1 focus:outline-none"
             >
-              Inter Sans
-            </button>
-            <button
-              onClick={() => setFontMode('dyslexic')}
-              className={`p-3 rounded-xl border text-sm font-bold transition-all font-dyslexic text-center ${
-                fontMode === 'dyslexic'
-                  ? 'bg-[#3A2AD9] text-white border-[#3A2AD9]'
-                  : 'bg-white border-[#E5DFD3] text-[#5E5A54] hover:text-[#141416]'
-              }`}
-            >
-              OpenDyslexic
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <label className="text-xs font-bold text-[#141416] uppercase tracking-wider block mb-2">
-            Scale / Size (Current: {textSize})
-          </label>
-          <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-[#E5DFD3]">
-            <button
-              onClick={() => setTextSize((p) => Math.max(-1, p - 1))}
-              className="px-4 py-2 bg-[#F5F1EA] rounded-lg text-xs font-bold text-[#141416] hover:bg-[#EAE4D7]"
-            >
-              Smaller (A-)
-            </button>
-            <span className="text-xs font-mono text-[#3A2AD9] font-bold">
-              {textSize === 0 ? 'Standard 100%' : `${100 + textSize * 15}%`}
-            </span>
-            <button
-              onClick={() => setTextSize((p) => Math.min(3, p + 1))}
-              className="px-4 py-2 bg-[#F5F1EA] rounded-lg text-xs font-bold text-[#141416] hover:bg-[#EAE4D7]"
-            >
-              Larger (A+)
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between p-3.5 bg-white border border-[#E5DFD3] rounded-xl mb-6">
-          <div>
-            <p className="text-sm font-bold text-[#141416]">Focus Mode</p>
-            <p className="text-xs text-[#6B665F]">
-              Minimizes peripheral distractions while reading
+              Accessibility &amp; reading preferences
+            </h2>
+            <p className="text-sm text-[#524E48]">
+              Tailor typography, line spacing, theme, and focus support to your mind.
             </p>
           </div>
-          <button
-            onClick={() => setFocusMode(!focusMode)}
-            className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
-              focusMode ? 'bg-[#3A2AD9]' : 'bg-[#D6CFC2]'
-            }`}
-          >
-            <div
-              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                focusMode ? 'translate-x-6' : 'translate-x-0'
-              }`}
-            />
-          </button>
         </div>
 
-        <button
-          onClick={onClose}
-          className="w-full bg-[#3A2AD9] hover:bg-[#3021C2] text-white font-bold text-sm py-3 rounded-full transition-all shadow-md"
-        >
-          Done
-        </button>
+        {/* Scrollable Middle Content Area (inset from rounded edge) */}
+        <div className="flex-1 min-h-0 overflow-y-auto modal-scroll mr-1.5 sm:mr-2 pl-5 sm:pl-6 pr-3.5 sm:pr-4 pt-5 pb-8">
+          <AccessibilityPanel
+            fontMode={fontMode}
+            setFontMode={setFontMode}
+            textSize={textSize}
+            setTextSize={setTextSize}
+            lineSpacing={lineSpacing}
+            setLineSpacing={setLineSpacing}
+            readerTheme={readerTheme}
+            setReaderTheme={setReaderTheme}
+            focusMode={focusMode}
+            setFocusMode={setFocusMode}
+          />
+        </div>
+
+        {/* Fixed Solid Footer */}
+        <div className="shrink-0 bg-white border-t border-[#E4E4E7] px-5 sm:px-6 py-3.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full min-h-[44px] bg-[#3B2FD6] hover:bg-[#3126B8] text-white font-semibold text-sm py-2.5 rounded-full transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
+          >
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );

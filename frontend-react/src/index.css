@@ -91,3 +91,39 @@ input[type="range"].reader-slider::-webkit-slider-thumb:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #B8B0A2;
 }
+
+/* Inset modal scrollbar that stays cleanly inside rounded modal containers */
+.modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #CEC7B9 transparent;
+}
+
+.modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: #CEC7B9;
+  border-radius: 9999px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #B5AD9E;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

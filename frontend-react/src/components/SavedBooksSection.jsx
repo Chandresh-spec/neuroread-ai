@@ -6,79 +6,18 @@ import {
   Search,
 } from 'lucide-react';
 import BookCover from './BookCover';
-import { curatedBooks, readingHistory } from '../data/booksData';
-import { libraryBooks } from '../data/libraryBooksData';
-
-const INITIAL_SAVED_ITEMS = [
-  {
-    ...curatedBooks.find((b) => b.id === 'psychology-of-money'),
-    savedType: 'ebook',
-    savedAt: 'Saved today',
-    progressPercent: 15,
-    hasCoverComponent: true,
-  },
-  {
-    ...readingHistory.find((b) => b.id === 'atomic-habits'),
-    category: 'HABITS & SYSTEMS',
-    duration: '5h 30m',
-    hasAudio: true,
-    hasBook: true,
-    savedType: 'ebook',
-    savedAt: 'Saved 2 days ago',
-    hasCoverComponent: true,
-  },
-  {
-    ...curatedBooks.find((b) => b.id === 'deep-work'),
-    savedType: 'ebook',
-    savedAt: 'Saved 3 days ago',
-    progressPercent: 48,
-    hasCoverComponent: true,
-  },
-  {
-    ...readingHistory.find((b) => b.id === 'mountain-is-you'),
-    category: 'SELF-DISCOVERY',
-    duration: '5h 35m',
-    hasAudio: true,
-    hasBook: true,
-    savedType: 'audiobook',
-    savedAt: 'Saved 5 days ago',
-    hasCoverComponent: true,
-  },
-  {
-    ...libraryBooks.find((b) => b.id === 'garden-of-hours'),
-    category: 'VERIFIED LIBRARY',
-    duration: '1 min read',
-    rating: 4.9,
-    hasAudio: true,
-    hasBook: true,
-    savedType: 'ebook',
-    savedAt: 'Saved 1 week ago',
-    progressPercent: 100,
-    hasCoverComponent: false,
-  },
-  {
-    id: 'dsa-algo',
-    title: 'Data Structures & Algorithms.pdf',
-    author: 'Uploaded PDF · DSA',
-    category: 'UPLOADED PDF',
-    duration: '18.4 MB',
-    rating: 4.8,
-    hasAudio: true,
-    hasBook: true,
-    savedType: 'file',
-    savedAt: 'Saved 5 days ago',
-    progressPercent: 12,
-    hasCoverComponent: false,
-    format: 'pdf',
-  },
-];
+import { INITIAL_SAVED_ITEMS } from '../data/userCollections';
 
 export default function SavedBooksSection({
   onOpenReader,
   onOpenAudio,
   onExploreLibrary,
+  savedItems: externalSavedItems,
+  setSavedItems: setExternalSavedItems,
 }) {
-  const [savedItems, setSavedItems] = useState(INITIAL_SAVED_ITEMS);
+  const [internalSavedItems, setInternalSavedItems] = useState(INITIAL_SAVED_ITEMS);
+  const savedItems = externalSavedItems ?? internalSavedItems;
+  const setSavedItems = setExternalSavedItems ?? setInternalSavedItems;
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastRemoved, setLastRemoved] = useState(null);

@@ -7,86 +7,13 @@ import {
   Trash2,
   BookOpen,
   MessageSquarePlus,
+  ArrowLeft,
   ArrowRight,
   Edit3,
 } from 'lucide-react';
 import { curatedBooks, readingHistory } from '../data/booksData';
 import { libraryBooks } from '../data/libraryBooksData';
-
-const INITIAL_HIGHLIGHTS = [
-  {
-    id: 'hl-1',
-    bookId: 'atomic-habits',
-    bookTitle: 'Atomic Habits',
-    author: 'James Clear',
-    location: 'Chapter 4 · Page 87',
-    savedAt: '2 days ago',
-    color: 'indigo',
-    quote:
-      'Changes that seem small and unimportant at first will compound into remarkable results if you are willing to stick with them for years.',
-    note: 'Focus on 1% daily systems rather than chasing overnight results.',
-  },
-  {
-    id: 'hl-2',
-    bookId: 'deep-work',
-    bookTitle: 'Deep Work',
-    author: 'Cal Newport',
-    location: 'Chapter 1 · Page 24',
-    savedAt: '3 days ago',
-    color: 'sage',
-    quote:
-      'Deep work is the ability to focus without distraction on a cognitively demanding task. It is a skill that allows you to quickly master complicated information.',
-    note: 'Block 90 minutes every morning before checking messages.',
-  },
-  {
-    id: 'hl-3',
-    bookId: 'garden-of-hours',
-    bookTitle: 'A Garden of Hours',
-    author: 'Sylvia Chen',
-    location: 'Section 1',
-    savedAt: '5 days ago',
-    color: 'peach',
-    quote:
-      'There is the slow time of roots pushing through clay, finding water, finding their way. There is the sudden time of petals opening — a whole season compressed into one morning.',
-    note: 'Great reminder that quiet progress still counts.',
-  },
-  {
-    id: 'hl-4',
-    bookId: 'psychology-of-money',
-    bookTitle: 'The Psychology of Money',
-    author: 'Morgan Housel',
-    location: 'Chapter 1 · Page 14',
-    savedAt: '1 week ago',
-    color: 'indigo',
-    quote:
-      'Doing well with money has a little to do with how smart you are and a lot to do with how you behave.',
-    note: '',
-  },
-  {
-    id: 'hl-5',
-    bookId: 'ml-basics',
-    bookTitle: 'Machine Learning Basics.pdf',
-    author: 'Uploaded PDF · AI & ML Notes',
-    location: 'Page 12',
-    savedAt: '1 week ago',
-    color: 'sage',
-    quote:
-      'When a model memorizes noise in training data instead of learning general rules, it fails on unseen real-world inputs. Techniques like cross-validation keep models reliable.',
-    note: 'Review cross-validation examples before Friday quiz.',
-  },
-  {
-    id: 'hl-6',
-    bookId: 'quiet-mind-method',
-    bookTitle: 'The Quiet Mind Method',
-    author: 'Rohan Iyer',
-    location: 'Chapter 1 · Free sample',
-    savedAt: '2 weeks ago',
-    color: 'peach',
-    quote:
-      'When you stop trying to force silence, calm arrives on its own as a natural side effect of paying attention to one thing at a time.',
-    note: '',
-  },
-];
+import { INITIAL_HIGHLIGHTS } from '../data/userCollections';
 
 const COLOR_STYLES = {
   indigo: {
@@ -112,8 +39,15 @@ const COLOR_STYLES = {
   },
 };
 
-export default function HighlightsSection({ onOpenReader }) {
-  const [highlights, setHighlights] = useState(INITIAL_HIGHLIGHTS);
+export default function HighlightsSection({
+  onOpenReader,
+  highlights: externalHighlights,
+  setHighlights: setExternalHighlights,
+  onBackToProfile,
+}) {
+  const [internalHighlights, setInternalHighlights] = useState(INITIAL_HIGHLIGHTS);
+  const highlights = externalHighlights ?? internalHighlights;
+  const setHighlights = setExternalHighlights ?? setInternalHighlights;
   const [activeColor, setActiveColor] = useState('all');
   const [selectedBook, setSelectedBook] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,6 +121,20 @@ export default function HighlightsSection({ onOpenReader }) {
 
   return (
     <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-200">
+      {onBackToProfile && (
+        <div>
+          <button
+            type="button"
+            onClick={onBackToProfile}
+            aria-label="Back to Profile"
+            className="inline-flex items-center gap-2 min-h-[44px] px-3 py-2 -ml-3 rounded-full text-sm font-semibold text-[#3B2FD6] hover:bg-[#ECEAFD]/60 transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
+          >
+            <ArrowLeft className="w-4 h-4 pointer-events-none" aria-hidden="true" />
+            <span>Back to Profile</span>
+          </button>
+        </div>
+      )}
+
       {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">

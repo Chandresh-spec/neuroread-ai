@@ -1,10 +1,12 @@
 import React from 'react';
 import { Home, BookOpen, Bookmark, FileText, User } from 'lucide-react';
+import UserAvatar from './UserAvatar';
 
 export default function MobileBottomNav({
   activeNav,
   setActiveNav,
   onOpenProfile,
+  profile,
 }) {
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
@@ -36,13 +38,13 @@ export default function MobileBottomNav({
           >
             <div className="relative flex items-center justify-center">
               {tab.isProfile ? (
-                <div className="w-5 h-5 rounded-full ring-1.5 ring-[#FAD8C4] overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&h=80&q=80"
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <UserAvatar
+                  name={profile?.displayName || 'Alex Morgan'}
+                  src={profile?.avatarUrl}
+                  sizeClass="w-5 h-5"
+                  textClass="text-[9px]"
+                  ringClass="ring-1.5 ring-[#FAD8C4]"
+                />
               ) : (
                 <Icon className="w-5 h-5" />
               )}

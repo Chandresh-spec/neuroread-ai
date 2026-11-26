@@ -111,6 +111,9 @@ export default function ReaderView({
   onOpenProfile,
   isSimulatedMobile = false,
   isSimulatedTablet = false,
+  defaultTheme = 'cream',
+  defaultFont = 'lexend',
+  defaultSpeed = 1,
 }) {
   const isCompactPreview = isSimulatedMobile || isSimulatedTablet;
   const doc = getDocumentContent(book);
@@ -130,8 +133,8 @@ export default function ReaderView({
   const [lineHeight, setLineHeight] = useState(1.9);
   const [wordSpacing, setWordSpacing] = useState(0.1);
   const [paragraphGap, setParagraphGap] = useState(1.5);
-  const [readingFont, setReadingFont] = useState('lexend'); // 'lexend' | 'inter' | 'dyslexic' | 'atkinson' | 'serif'
-  const [colorTheme, setColorTheme] = useState('cream');
+  const [readingFont, setReadingFont] = useState(defaultFont); // 'lexend' | 'inter' | 'dyslexic' | 'atkinson' | 'serif'
+  const [colorTheme, setColorTheme] = useState(defaultTheme);
 
   // Tools Tab Toggles
   const [readingRuler, setReadingRuler] = useState(false);
@@ -143,7 +146,7 @@ export default function ReaderView({
 
   // Audio TTS Controls
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState(defaultSpeed);
   const [activeParaIndex, setActiveParaIndex] = useState(0);
   const [ttsStatus, setTtsStatus] = useState('Ready');
 
