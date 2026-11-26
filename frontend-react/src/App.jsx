@@ -68,7 +68,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen bg-[#F5F1EA] text-[#141416] ${
+      className={`min-h-screen bg-white text-[#141416] ${
         fontMode === 'dyslexic' ? 'font-dyslexic' : ''
       }`}
     >
@@ -130,35 +130,6 @@ export default function App() {
                         setIsAudioPlayerOpen(true);
                       }}
                     />
-                  </div>
-
-                  {/* Weekly Reading Goal Horizontal Banner Card */}
-                  <div className="bg-white border border-[#E5DFD3] rounded-2xl px-5 sm:px-7 py-4 sm:py-5 flex items-center justify-between gap-4 shadow-2xs">
-                    <div>
-                      <span className="text-[11px] font-medium text-[#6B665F] block mb-0.5">
-                        Your weekly reading goal
-                      </span>
-                      <span className="font-editorial text-2xl sm:text-3xl font-bold text-[#141416] tracking-tight">
-                        3 of 5 days
-                      </span>
-                    </div>
-
-                    {/* 5 Circular Progress Dots */}
-                    <div className="flex items-center gap-2 sm:gap-2.5">
-                      {[1, 2, 3, 4, 5].map((day) => {
-                        const completed = day <= 3;
-                        return (
-                          <div
-                            key={day}
-                            className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full transition-all ${
-                              completed
-                                ? 'bg-[#3A2AD9] shadow-2xs'
-                                : 'border border-dashed border-[#CFC7B8] bg-transparent'
-                            }`}
-                          />
-                        );
-                      })}
-                    </div>
                   </div>
 
                   {/* Section 1: "Pick up where you left off" */}

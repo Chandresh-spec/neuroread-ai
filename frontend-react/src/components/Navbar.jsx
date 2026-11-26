@@ -16,7 +16,7 @@ export default function Navbar({
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#F5F1EA]/95 backdrop-blur-md border-b border-[#E5DFD3] transition-colors">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#E5DFD3] transition-colors">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Logo */}
         <button
@@ -90,7 +90,7 @@ export default function Navbar({
                 alt="Alex Morgan"
                 className="w-9 h-9 rounded-full object-cover ring-2 ring-[#FAD8C4] group-hover:ring-[#3A2AD9] transition-all"
               />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#F5F1EA] rounded-full" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    --bg-base: #F5F1EA;
+    --bg-base: #FFFFFF;
     --card-bg: #FFFFFF;
     --card-inner: #FAF8F5;
     --accent-indigo: #3A2AD9;
@@ -13,7 +13,7 @@
   }
 
   body {
-    background-color: #F5F1EA;
+    background-color: #FFFFFF;
     color: #141416;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
@@ -82,7 +82,7 @@ input[type="range"].reader-slider::-webkit-slider-thumb:hover {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F5F1EA;
+  background: #FFFFFF;
 }
 ::-webkit-scrollbar-thumb {
   background: #D6CFC2;
