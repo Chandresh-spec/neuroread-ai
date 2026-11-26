@@ -522,6 +522,7 @@ export default function App() {
         activeItem={ACCOUNT_SUBPAGES.has(activeNav) ? activeNav : ''}
         onSelectItem={handleSelectAccountItem}
         onSignOut={handleSignOut}
+        savedCount={savedItems.length}
         returnFocusRef={avatarTriggerRef}
       />
 

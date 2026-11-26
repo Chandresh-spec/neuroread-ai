@@ -16,7 +16,6 @@ export default function Navbar({
     { id: 'home', label: 'Home' },
     { id: 'library', label: 'Library' },
     { id: 'my-files', label: 'My Files' },
-    { id: 'saved-books', label: 'Saved Books' },
   ];
 
   return (

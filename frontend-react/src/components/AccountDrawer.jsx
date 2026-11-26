@@ -23,6 +23,7 @@ export default function AccountDrawer({
   onSelectItem,
   onSignOut,
   returnFocusRef,
+  savedCount,
 }) {
   if (!isOpen) return null;
   return (
@@ -33,6 +34,7 @@ export default function AccountDrawer({
       onSelectItem={onSelectItem}
       onSignOut={onSignOut}
       returnFocusRef={returnFocusRef}
+      savedCount={savedCount}
     />
   );
 }
@@ -44,6 +46,7 @@ function AccountDrawerPanel({
   onSelectItem,
   onSignOut,
   returnFocusRef,
+  savedCount,
 }) {
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const drawerRef = useRef(null);
@@ -103,7 +106,7 @@ function AccountDrawerPanel({
   const menuItems = [
     { id: 'edit-profile', label: 'Edit profile', icon: User },
     { id: 'highlights', label: 'Highlights', icon: Highlighter },
-    { id: 'saved-books', label: 'Saved books', icon: Bookmark },
+    { id: 'saved-books', label: 'Saved books', icon: Bookmark, count: savedCount },
     { id: 'accessibility', label: 'Accessibility', icon: Sliders },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'help', label: 'Help', icon: HelpCircle },
@@ -195,7 +198,12 @@ function AccountDrawerPanel({
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {typeof item.count === 'number' && (
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#ECEAFD] text-[#3A2AD9]">
+                        {item.count}
+                      </span>
+                    )}
                   </button>
                 </li>
               );

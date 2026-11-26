@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import {
+  ArrowLeft,
+  ArrowRight,
   Bookmark,
   BookOpen,
   Headphones,
   Search,
+  X,
 } from 'lucide-react';
 import BookCover from './BookCover';
-import AccountPageLayout from './AccountPageLayout';
 import { INITIAL_SAVED_ITEMS } from '../data/userCollections';
 
 export default function SavedBooksSection({
@@ -25,10 +27,13 @@ export default function SavedBooksSection({
   const [lastRemoved, setLastRemoved] = useState(null);
 
   const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return savedItems.filter((item) => {
       const matchesSearch =
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.author.toLowerCase().includes(searchQuery.toLowerCase());
+        !query ||
+        item.title.toLowerCase().includes(query) ||
+        item.author.toLowerCase().includes(query) ||
+        (item.category && item.category.toLowerCase().includes(query));
       if (!matchesSearch) return false;
       if (activeTab === 'all') return true;
       return item.savedType === activeTab;
@@ -49,32 +54,59 @@ export default function SavedBooksSection({
   };
 
   const tabs = [
-    { id: 'all', label: 'All saved', count: savedItems.length },
-    { id: 'ebook', label: 'E-books', count: savedItems.filter((i) => i.savedType === 'ebook').length },
-    { id: 'audiobook', label: 'Audiobooks', count: savedItems.filter((i) => i.savedType === 'audiobook').length },
-    { id: 'file', label: 'Files', count: savedItems.filter((i) => i.savedType === 'file').length },
+    { id: 'all', label: 'All', count: savedItems.length },
+    {
+      id: 'ebook',
+      label: 'E-books',
+      count: savedItems.filter((i) => i.savedType === 'ebook').length,
+    },
+    {
+      id: 'audiobook',
+      label: 'Audiobooks',
+      count: savedItems.filter((i) => i.savedType === 'audiobook').length,
+    },
+    {
+      id: 'file',
+      label: 'Files',
+      count: savedItems.filter((i) => i.savedType === 'file').length,
+    },
   ];
 
-  const renderThumbnail = (item, compact = false) => {
+  const getTypeBadge = (item) => {
+    if (item.savedType === 'audiobook') {
+      return { label: 'Audiobook', bg: 'bg-[#FAD8C4]/70', text: 'text-[#8B3D1A]' };
+    }
+    if (item.savedType === 'file') {
+      return {
+        label: item.format ? item.format.toUpperCase() : 'Document',
+        bg: 'bg-[#F9E4E5]',
+        text: 'text-[#B91C1C]',
+      };
+    }
+    return { label: 'E-book', bg: 'bg-[#ECEAFD]', text: 'text-[#3A2AD9]' };
+  };
+
+  const renderCover = (item) => {
     if (item.hasCoverComponent) {
       return <BookCover book={item} width="w-full" height="h-full" />;
     }
+
+    const isFile = item.savedType === 'file';
+    const coverBg = isFile ? 'bg-[#2C2836]' : 'bg-[#193B32]';
+    const badgeLabel = isFile
+      ? (item.format || 'FILE').toUpperCase()
+      : 'E-BOOK';
+
     return (
       <div
-        className={`w-full h-full rounded-xl bg-[#193B32] text-white flex flex-col justify-between ${
-          compact ? 'p-2' : 'p-3.5'
-        } select-none`}
+        className={`w-full h-full rounded-xl ${coverBg} text-white flex flex-col justify-between p-2.5 select-none shadow-sm`}
       >
         <div>
-          <span className="px-1.5 py-0.5 rounded bg-white/15 text-white text-[9px] font-bold uppercase tracking-wider">
-            {item.format ? item.format.toUpperCase() : 'BOOK'}
+          <span className="inline-block whitespace-nowrap px-1.5 py-0.5 rounded bg-white/15 text-white text-[8.5px] font-bold uppercase tracking-wider">
+            {badgeLabel}
           </span>
         </div>
-        <p
-          className={`${
-            compact ? 'text-[10px]' : 'text-sm'
-          } font-bold text-white leading-snug line-clamp-3`}
-        >
+        <p className="text-[10px] font-bold text-white leading-snug line-clamp-3">
           {item.title}
         </p>
       </div>
@@ -82,36 +114,63 @@ export default function SavedBooksSection({
   };
 
   return (
-    <AccountPageLayout
-      activePage="saved-books"
-      onBack={onBack}
-      title="Saved books"
-      subtitle="Books and documents you bookmarked to read or listen to later."
-      headerRight={
-        <div className="inline-flex items-center gap-2 border border-[#E4E4E7] rounded-full px-3.5 py-1.5 text-xs text-[#524E48]">
-          <span className="font-semibold text-[#141416]">{savedItems.length}</span>
-          <span>saved items</span>
+    <div className="space-y-6 sm:space-y-7 animate-in fade-in duration-300">
+      {/* 1. Editorial Header */}
+      <div>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#5E5A54] hover:text-[#3A2AD9] transition-colors mb-3"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
+        )}
+
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <span className="block text-[11px] font-bold tracking-[0.14em] uppercase text-[#3A2AD9] mb-2">
+              {savedItems.length} SAVED {savedItems.length === 1 ? 'ITEM' : 'ITEMS'} • READY TO READ
+            </span>
+            <h1 className="font-editorial text-4xl sm:text-[44px] font-bold text-[#141416] tracking-tight leading-none">
+              Saved <span className="italic text-[#3A2AD9] font-semibold">Books</span>
+            </h1>
+            <p className="text-xs sm:text-[13.5px] text-[#6B665F] mt-2.5 font-normal">
+              Books, audiobooks and documents you bookmarked to return to anytime.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onExploreLibrary}
+            className="inline-flex items-center justify-center gap-2 bg-white hover:bg-[#FAF8F5] text-[#141416] border border-[#DED8CB] hover:border-[#3A2AD9]/40 font-semibold text-xs sm:text-[13px] px-4 py-2.5 rounded-full transition-all shadow-2xs self-start sm:self-end flex-shrink-0"
+          >
+            <span>Explore library</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#3A2AD9]" />
+          </button>
         </div>
-      }
-    >
+      </div>
+
+      {/* Undo Banner */}
       {lastRemoved && (
-        <div className="bg-white border border-[#E4E4E7] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
-          <span className="text-[#524E48] truncate">
+        <div className="bg-[#FAF8F5] border border-[#E5DFD3] rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
+          <span className="text-[#5E5A54] truncate">
             Removed <strong className="text-[#141416]">{lastRemoved.title}</strong> from Saved books.
           </span>
           <button
             type="button"
             onClick={handleUndoRemove}
-            className="min-h-[44px] px-2 text-[#3B2FD6] font-semibold hover:underline flex-shrink-0"
+            className="px-3 py-1 rounded-full bg-[#ECEAFD] text-[#3A2AD9] font-semibold hover:bg-[#E1DDFB] transition-colors flex-shrink-0"
           >
             Undo
           </button>
         </div>
       )}
 
-      {/* Tabs + Search Toolbar (stacked vertically inside 720px column) */}
-      <div className="border-t border-[#E4E4E7] pt-6 space-y-4">
-        <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E4E7] pb-3">
+      {/* 2. Filter Pills + Inline Search Bar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pt-1">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -119,172 +178,168 @@ export default function SavedBooksSection({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors whitespace-nowrap flex items-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${
+                className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border ${
                   isActive
-                    ? 'bg-[#ECEAFD] text-[#3B2FD6]'
-                    : 'text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5]'
+                    ? 'bg-[#141416] text-white border-[#141416]'
+                    : 'bg-white hover:bg-[#FAF8F5] text-[#141416] border-[#E5DFD3]'
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className="text-xs opacity-80">({tab.count})</span>
+                <span
+                  className={`text-[11px] font-medium ${
+                    isActive ? 'text-white/75' : 'text-[#8C867E]'
+                  }`}
+                >
+                  {tab.count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        <div className="relative w-full">
-          <Search className="w-4 h-4 text-[#524E48] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+        <div className="relative w-full lg:w-72">
+          <Search className="w-3.5 h-3.5 text-[#7B756D] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             aria-label="Search saved books"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search saved books..."
-            className="w-full min-h-[44px] bg-white border border-[#D4D4D8] rounded-md pl-9 pr-3 py-2 text-sm text-[#141416] placeholder-[#6B665F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B2FD6]"
+            className="w-full bg-[#F7F6F3] hover:bg-[#F3F1EC] focus:bg-white text-xs sm:text-sm text-[#141416] placeholder-[#8C867E] rounded-full pl-10 pr-8 py-2 border border-[#E4E1DA] focus:outline-none focus:border-[#3A2AD9] transition-colors"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7B756D] hover:text-[#141416]"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Saved Items Display */}
+      {/* 3. Saved Books Responsive 3-Column Editorial Grid */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white border border-[#E4E4E7] rounded-2xl p-8 text-center">
-          <Bookmark className="w-8 h-8 text-[#524E48] mx-auto mb-2.5" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-[#141416] mb-1">No saved books here</h2>
-          <p className="text-sm text-[#524E48] max-w-sm mx-auto mb-4">
+        <div className="bg-white border border-[#E5DFD3] rounded-[20px] p-10 text-center shadow-2xs">
+          <Bookmark className="w-10 h-10 text-[#8C867E] mx-auto mb-2.5" />
+          <h2 className="font-editorial text-lg font-bold text-[#141416] mb-1">
+            No saved books here
+          </h2>
+          <p className="text-xs text-[#6B665F] max-w-sm mx-auto mb-4">
             Bookmark books from the Library or Home feed to keep them handy for later.
           </p>
           <button
             type="button"
             onClick={onExploreLibrary}
-            className="w-full sm:w-auto min-h-[44px] bg-[#3B2FD6] hover:bg-[#3126B8] text-white font-semibold text-sm px-5 py-2.5 rounded-md transition-colors"
+            className="inline-flex items-center gap-2 bg-[#3A2AD9] hover:bg-[#3021C2] text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all shadow-xs"
           >
             Browse Library
           </button>
         </div>
       ) : (
-        <>
-          {/* Mobile List Layout (< 640px) */}
-          <div className="flex sm:hidden flex-col gap-3">
-            {filteredItems.map((item) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {filteredItems.map((item) => {
+            const hasProgress = typeof item.progressPercent === 'number';
+            const isCompleted = item.progressPercent === 100;
+            const badge = getTypeBadge(item);
+
+            return (
               <div
                 key={item.id}
                 onClick={() => onOpenReader(item)}
-                className="bg-white border border-[#E4E4E7] rounded-2xl p-3 flex items-center gap-3 cursor-pointer"
+                className="bg-white rounded-[20px] border border-[#EAE4D8] hover:border-[#D5CEC0] p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 group cursor-pointer shadow-[0_1px_2px_rgba(20,20,22,0.03)] hover:shadow-md"
               >
-                <div className="w-[62px] h-[86px] flex-shrink-0">
-                  {renderThumbnail(item, true)}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#524E48] truncate">
-                    {item.category}
-                  </p>
-                  <h2 className="text-sm font-semibold text-[#141416] truncate mt-0.5">
-                    {item.title}
-                  </h2>
-                  <p className="text-xs text-[#524E48] truncate">{item.author}</p>
-
-                  {typeof item.progressPercent === 'number' && (
-                    <div className="mt-1.5 flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-[#E4E4E7] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[#3B2FD6] rounded-full"
-                          style={{ width: `${item.progressPercent}%` }}
-                        />
-                      </div>
-                      <span className="text-[11px] text-[#524E48]">
-                        {item.progressPercent}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={(e) => handleRemoveBookmark(e, item)}
-                    aria-label={`Remove ${item.title} from saved`}
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md bg-[#ECEAFD] text-[#3B2FD6]"
-                  >
-                    <Bookmark className="w-4 h-4 fill-[#3B2FD6] pointer-events-none" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenReader(item);
-                    }}
-                    className="min-h-[44px] px-4 rounded-md bg-[#141416] text-white font-semibold text-xs"
-                  >
-                    Read
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tablet & Desktop Grid (fits 720px cleanly in 2–3 cols) */}
-          <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onOpenReader(item)}
-                className="bg-white border border-[#E4E4E7] hover:border-[#A1A1AA] rounded-2xl p-3.5 flex flex-col justify-between transition-colors cursor-pointer group"
-              >
+                {/* Top: Book Cover + Editorial Metadata */}
                 <div>
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3">
-                    {renderThumbnail(item, false)}
+                  <div className="flex gap-4">
+                    <div className="w-[78px] h-[112px] sm:w-[84px] sm:h-[120px] flex-shrink-0">
+                      {renderCover(item)}
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => handleRemoveBookmark(e, item)}
-                      aria-label={`Remove ${item.title} from Saved books`}
-                      title="Remove from Saved books"
-                      className="absolute top-2 right-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-white/95 text-[#3B2FD6] hover:bg-white shadow-sm"
-                    >
-                      <Bookmark className="w-4 h-4 fill-[#3B2FD6] pointer-events-none" aria-hidden="true" />
-                    </button>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${badge.bg} ${badge.text}`}
+                          >
+                            {badge.label}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={(e) => handleRemoveBookmark(e, item)}
+                            aria-label={`Remove ${item.title} from Saved books`}
+                            title="Remove bookmark"
+                            className="w-8 h-8 rounded-full bg-[#ECEAFD] hover:bg-[#E0DCFB] text-[#3A2AD9] flex items-center justify-center flex-shrink-0 transition-colors"
+                          >
+                            <Bookmark className="w-3.5 h-3.5 fill-[#3A2AD9] pointer-events-none" />
+                          </button>
+                        </div>
+
+                        <h2 className="font-editorial text-[17px] sm:text-[18px] font-semibold text-[#141416] leading-snug line-clamp-2 group-hover:text-[#3A2AD9] transition-colors mt-2">
+                          {item.title}
+                        </h2>
+                        <p className="text-xs text-[#6B665F] truncate mt-0.5">
+                          {item.author}
+                        </p>
+                      </div>
+
+                      <p className="text-[11px] text-[#8C867E] mt-2">
+                        {item.savedAt}
+                        {item.duration ? ` · ${item.duration}` : ''}
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="text-[10px] font-semibold tracking-wider text-[#524E48] uppercase truncate">
-                    {item.category}
-                  </p>
-                  <h2 className="text-sm font-semibold text-[#141416] tracking-tight truncate group-hover:text-[#3B2FD6] transition-colors mt-0.5">
-                    {item.title}
-                  </h2>
-                  <p className="text-xs text-[#524E48] truncate mt-0.5">
-                    {item.author}
-                  </p>
-
-                  {typeof item.progressPercent === 'number' && (
-                    <div className="mt-2.5">
-                      <div className="flex items-center justify-between text-[11px] text-[#524E48] mb-1">
-                        <span>{item.savedAt}</span>
-                        <span className="font-semibold text-[#141416]">
-                          {item.progressPercent}%
-                        </span>
+                  {/* Progress Indicator */}
+                  <div className="mt-4">
+                    {hasProgress ? (
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] mb-1.5">
+                          <span className="text-[#7D7870]">
+                            {isCompleted ? 'Completed' : 'Reading progress'}
+                          </span>
+                          <span className="font-bold text-[#3A2AD9]">
+                            {item.progressPercent}%
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-[#ECE7DD] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[#3A2AD9] rounded-full transition-all duration-300"
+                            style={{ width: `${item.progressPercent}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full h-1 bg-[#E4E4E7] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[#3B2FD6] rounded-full"
-                          style={{ width: `${item.progressPercent}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-[11px] text-[#7D7870]">Ready to read</p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 mt-3 border-t border-[#E4E4E7]">
+                {/* Bottom Actions */}
+                <div className="flex items-center gap-2 mt-4 pt-3.5 border-t border-[#F0ECE3]">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpenReader(item);
                     }}
-                    className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 bg-[#141416] hover:bg-[#2a2a2f] text-white font-semibold text-xs rounded-md transition-colors"
+                    className={`flex-1 py-2.5 px-4 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] ${
+                      hasProgress
+                        ? 'bg-[#141416] hover:bg-[#27272C] text-white'
+                        : 'bg-[#3A2AD9] hover:bg-[#3021C2] text-white'
+                    }`}
                   >
-                    <BookOpen className="w-3.5 h-3.5 pointer-events-none" aria-hidden="true" />
-                    <span>{item.progressPercent ? 'Continue' : 'Read'}</span>
+                    <BookOpen className="w-3.5 h-3.5 pointer-events-none" />
+                    <span>
+                      {isCompleted
+                        ? 'Read again'
+                        : hasProgress
+                        ? 'Continue reading'
+                        : 'Read now'}
+                    </span>
                   </button>
 
                   {item.hasAudio && (
@@ -292,21 +347,21 @@ export default function SavedBooksSection({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenAudio(item);
+                        onOpenAudio?.(item);
                       }}
                       aria-label={`Listen to ${item.title}`}
                       title="Listen to audiobook"
-                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md bg-white hover:bg-[#ECEAFD] border border-[#D4D4D8] text-[#524E48] hover:text-[#3B2FD6] transition-colors"
+                      className="w-9 h-9 rounded-full border border-[#E5DFD3] bg-white hover:bg-[#ECEAFD] hover:border-[#3A2AD9]/30 text-[#5E5A54] hover:text-[#3A2AD9] flex items-center justify-center flex-shrink-0 transition-colors"
                     >
-                      <Headphones className="w-4 h-4 pointer-events-none" aria-hidden="true" />
+                      <Headphones className="w-4 h-4 pointer-events-none" />
                     </button>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        </>
+            );
+          })}
+        </div>
       )}
-    </AccountPageLayout>
+    </div>
   );
 }

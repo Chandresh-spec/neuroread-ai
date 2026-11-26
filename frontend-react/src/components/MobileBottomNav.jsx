@@ -1,10 +1,11 @@
 import React from 'react';
-import { Home, BookOpen, Bookmark, FileText, User } from 'lucide-react';
+import { Home, BookOpen, FileText, User } from 'lucide-react';
 import UserAvatar from './UserAvatar';
 
 const PROFILE_PAGES = new Set([
   'edit-profile',
   'highlights',
+  'saved-books',
   'accessibility',
   'settings',
   'help',
@@ -23,7 +24,6 @@ export default function MobileBottomNav({
     { id: 'home', label: 'Home', icon: Home },
     { id: 'library', label: 'Library', icon: BookOpen },
     { id: 'my-files', label: 'Files', icon: FileText },
-    { id: 'saved-books', label: 'Saved', icon: Bookmark },
     {
       id: 'profile',
       label: isAuthenticated ? 'Profile' : 'Sign in',
