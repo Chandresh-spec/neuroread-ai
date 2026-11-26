@@ -201,3 +201,26 @@ class TestUserReadingData:
         data_url = reverse("library-reading-data", kwargs={"pk": file_id})
         response = second_auth_client.get(data_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestS3StorageCompatibility:
+    """Verifies that UserFile deletion and serving handle storages without local .path (such as S3)."""
+
+    def test_delete_without_local_path(self, test_user, sample_pdf):
+        from unittest.mock import patch, PropertyMock
+        user_file = UserFile.objects.create(
+            user=test_user,
+            title="S3 Mocked Doc",
+            file=sample_pdf,
+            file_type="PDF",
+            size=120,
+        )
+        file_id = user_file.id
+        # When file.path raises NotImplementedError (like S3Boto3Storage), delete() succeeds cleanly
+        with patch.object(type(user_file.file), "path", new_callable=PropertyMock) as mock_path:
+            mock_path.side_effect = NotImplementedError("This backend doesn't support absolute paths.")
+            user_file.delete()
+            assert not UserFile.objects.filter(id=file_id).exists()
+
+

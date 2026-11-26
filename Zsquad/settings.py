@@ -24,7 +24,10 @@ SECRET_KEY = os.getenv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*', 'neuroreader-kqqt.onrender.com']
+allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "*")
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
+if "*" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1", "neuroreader-kqqt.onrender.com"])
 
 
 # Application definition
@@ -40,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",  # enables refresh token blacklisting
+    "storages",                                  # AWS S3 storage backend
     # Local apps
     "accounts",
     "library",
@@ -97,10 +101,12 @@ AUTH_USER_MODEL = "accounts.User"
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# CSRF trusted origins for Render deployment
-CSRF_TRUSTED_ORIGINS = [
-    'https://neuroreader-kqqt.onrender.com',
-]
+# CSRF trusted origins for EC2, Render, and local development
+csrf_trusted_env = os.getenv(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://neuroreader-kqqt.onrender.com,http://localhost:8000,http://127.0.0.1:8000,http://localhost,http://127.0.0.1"
+)
+CSRF_TRUSTED_ORIGINS = [orig.strip() for orig in csrf_trusted_env.split(",") if orig.strip()]
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -170,9 +176,48 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-# Media files — user uploaded files stored here
-MEDIA_URL = "/media/"
+
+# Media files (local fallback & S3 support)
 MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+
+# AWS S3 Storage Settings for PDF / File Uploads
+USE_S3 = os.getenv("USE_S3", "False").lower() in ("true", "1", "yes") or bool(os.getenv("AWS_STORAGE_BUCKET_NAME"))
+
+if USE_S3:
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "")
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
+    AWS_S3_CUSTOM_DOMAIN = os.getenv(
+        "AWS_S3_CUSTOM_DOMAIN",
+        f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com" if AWS_STORAGE_BUCKET_NAME else None,
+    )
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = True
+    AWS_S3_OBJECT_PARAMETERS = {
+        "CacheControl": "max-age=86400",
+    }
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/" if AWS_S3_CUSTOM_DOMAIN else "/media/"
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -182,6 +227,4 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
 # Groq API key for ultra-fast LPU inference (sub-second response)
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")

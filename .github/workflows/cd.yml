@@ -1,0 +1,25 @@
+name: Deploy to AWS EC2
+
+on:
+  workflow_dispatch:
+  # Uncomment the following to trigger automated deployment on push to main:
+  # push:
+  #   branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER || 'ubuntu' }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/NeuroReader/NeuroReader || cd NeuroReader/NeuroReader
+            git pull origin main
+            docker compose up -d --build

@@ -81,19 +81,37 @@ class UserFileServeView(APIView):
         except UserFile.DoesNotExist:
             raise Http404
 
-        if not user_file.file or not os.path.isfile(user_file.file.path):
+        if not user_file.file:
             return Response(
                 {"error": "File not found on server."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        try:
+            if not user_file.file.storage.exists(user_file.file.name):
+                return Response(
+                    {"error": "File not found on server."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        except NotImplementedError:
+            pass
+        except Exception:
+            pass
+
         mime_type, _ = mimetypes.guess_type(user_file.file.name)
         mime_type = mime_type or "application/octet-stream"
 
-        response = FileResponse(
-            open(user_file.file.path, "rb"),
-            content_type=mime_type,
-        )
+        try:
+            file_obj = user_file.file.open("rb")
+            response = FileResponse(
+                file_obj,
+                content_type=mime_type,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Could not read file: {str(e)}"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         response["Content-Disposition"] = (
             f'inline; filename="{os.path.basename(user_file.file.name)}"'
         )

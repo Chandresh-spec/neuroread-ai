@@ -4,14 +4,14 @@ from django.conf import settings
 
 
 def user_file_path(instance, filename):
-    """Store files in: media/user_files/<user_id>/<filename>"""
-    return os.path.join("user_files", str(instance.user.id), filename)
+    """Store files in: user_files/<user_id>/<filename>"""
+    return f"user_files/{instance.user.id}/{filename}"
 
 
 class UserFile(models.Model):
     """
     Represents a file uploaded by a user.
-    The actual file is stored on disk under MEDIA_ROOT.
+    The actual file is stored in storage (S3 or local MEDIA_ROOT).
     """
 
     FILE_TYPE_CHOICES = [
@@ -41,9 +41,12 @@ class UserFile(models.Model):
         return f"{self.user.email} — {self.title}"
 
     def delete(self, *args, **kwargs):
-        """Delete the physical file from disk when the DB record is removed."""
-        if self.file and os.path.isfile(self.file.path):
-            os.remove(self.file.path)
+        """Delete the file from storage (S3 or local disk) when DB record is removed."""
+        if self.file:
+            try:
+                self.file.delete(save=False)
+            except Exception:
+                pass
         super().delete(*args, **kwargs)
 
 
