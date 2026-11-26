@@ -7,23 +7,35 @@ import MyFilesSection from './components/MyFilesSection';
 import LibrarySection from './components/LibrarySection';
 import SavedBooksSection from './components/SavedBooksSection';
 import HighlightsSection from './components/HighlightsSection';
-import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
+import EditProfilePage from './components/EditProfilePage';
+import SettingsPage from './components/SettingsPage';
+import AccessibilityPage from './components/AccessibilityPage';
+import HelpPage from './components/HelpPage';
 import Footer from './components/Footer';
 import MobileBottomNav from './components/MobileBottomNav';
 import SearchModal from './components/SearchModal';
 import AddFileModal from './components/AddFileModal';
 import AudioPlayerModal from './components/AudioPlayerModal';
 import PreferencesModal from './components/PreferencesModal';
-import ProfileModal from './components/ProfileModal';
+import AccountDrawer from './components/AccountDrawer';
 import ReaderView from './components/ReaderView';
+import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
 
 const INITIAL_PROFILE = {
   displayName: 'Alex Morgan',
   email: 'alex.morgan@neuroread.app',
   avatarUrl:
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&h=240&q=80',
-  membershipBadge: 'Inclusive Library Member',
 };
+
+const ACCOUNT_SUBPAGES = new Set([
+  'edit-profile',
+  'highlights',
+  'saved-books',
+  'accessibility',
+  'settings',
+  'help',
+]);
 
 export default function App() {
   // User Profile & Audio Defaults State
@@ -33,49 +45,60 @@ export default function App() {
     playbackSpeed: 1.0,
   });
 
-  // Shared Library Collections (used for real Profile counts & data export)
+  // Shared Library Collections
   const [savedItems, setSavedItems] = useState(INITIAL_SAVED_ITEMS);
   const [highlights, setHighlights] = useState(INITIAL_HIGHLIGHTS);
 
   // Accessibility & Preferences State
-  const [fontMode, setFontMode] = useState('inter'); // 'inter' | 'dyslexic' | 'lexend' | 'atkinson'
-  const [textSize, setTextSize] = useState(0); // -1, 0, 1, 2, 3
-  const [lineSpacing, setLineSpacing] = useState('relaxed'); // 'compact' | 'relaxed' | 'spacious'
-  const [readerTheme, setReaderTheme] = useState('cream'); // 'cream' | 'sky' | 'sage' | 'dark' | 'contrast'
+  const [fontMode, setFontMode] = useState('inter');
+  const [textSize, setTextSize] = useState(0);
+  const [lineSpacing, setLineSpacing] = useState('relaxed');
+  const [readerTheme, setReaderTheme] = useState('cream');
   const [focusMode, setFocusMode] = useState(false);
 
   // Navigation State
   const [activeNav, setActiveNav] = useState('home');
   const [readerBook, setReaderBook] = useState(null);
   const [accountNotice, setAccountNotice] = useState('');
-  const [highlightsFromProfile, setHighlightsFromProfile] = useState(false);
-  const navBeforeHighlightsRef = useRef('home');
-  const skipNextHighlightsPopRef = useRef(false);
+  const [openedFromAccountMenu, setOpenedFromAccountMenu] = useState(false);
+  const navBeforeAccountRef = useRef('home');
+  const skipNextAccountPopRef = useRef(false);
+  const avatarTriggerRef = useRef(null);
 
-  // Modals State
+  // Modals & Drawer State
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
   const [isAudioPlayerOpen, setIsAudioPlayerOpen] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [selectedAudioBook, setSelectedAudioBook] = useState(null);
 
   const handleNavChange = (nextNav) => {
-    setHighlightsFromProfile(false);
+    setOpenedFromAccountMenu(false);
     setActiveNav(nextNav);
   };
 
-  const handleBackToProfileFromHighlights = useCallback((fromPopState = false) => {
-    setHighlightsFromProfile(false);
-    setActiveNav(navBeforeHighlightsRef.current || 'home');
-    setIsProfileOpen(true);
-    if (!fromPopState && window.history.state?.neuroreadScreen === 'highlights-from-profile') {
-      skipNextHighlightsPopRef.current = true;
+  const handleSelectAccountItem = (itemId) => {
+    if (!ACCOUNT_SUBPAGES.has(activeNav)) {
+      navBeforeAccountRef.current = activeNav;
+    }
+    setOpenedFromAccountMenu(true);
+    setIsAccountMenuOpen(false);
+    setActiveNav(itemId);
+    window.history.pushState({ neuroreadAccountPage: itemId }, '');
+  };
+
+  const handleBackFromAccountPage = useCallback((fromPopState = false) => {
+    setOpenedFromAccountMenu(false);
+    setActiveNav(navBeforeAccountRef.current || 'home');
+    setIsAccountMenuOpen(true);
+    if (!fromPopState && window.history.state?.neuroreadAccountPage) {
+      skipNextAccountPopRef.current = true;
       window.history.back();
     }
   }, []);
 
-  // Keyboard shortcut: Ctrl+K or Cmd+K to open search; Esc on Highlights opened from Profile returns to Profile
+  // Keyboard shortcut: Ctrl+K/Cmd+K for search; Esc on account-opened subpages returns to account menu
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -85,47 +108,47 @@ export default function App() {
       }
       if (
         e.key === 'Escape' &&
-        activeNav === 'highlights' &&
-        highlightsFromProfile &&
+        openedFromAccountMenu &&
+        ACCOUNT_SUBPAGES.has(activeNav) &&
         !isSearchOpen &&
         !isAddFileOpen &&
         !isAudioPlayerOpen &&
         !isPreferencesOpen &&
-        !isProfileOpen &&
+        !isAccountMenuOpen &&
         !readerBook
       ) {
         e.preventDefault();
-        handleBackToProfileFromHighlights(false);
+        handleBackFromAccountPage(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     activeNav,
-    highlightsFromProfile,
+    openedFromAccountMenu,
     isSearchOpen,
     isAddFileOpen,
     isAudioPlayerOpen,
     isPreferencesOpen,
-    isProfileOpen,
+    isAccountMenuOpen,
     readerBook,
-    handleBackToProfileFromHighlights,
+    handleBackFromAccountPage,
   ]);
 
-  // Browser back button support when Highlights was opened from Profile
+  // Browser back button support when a page was opened from the account menu
   useEffect(() => {
     const handlePopState = () => {
-      if (skipNextHighlightsPopRef.current) {
-        skipNextHighlightsPopRef.current = false;
+      if (skipNextAccountPopRef.current) {
+        skipNextAccountPopRef.current = false;
         return;
       }
-      if (activeNav === 'highlights' && highlightsFromProfile) {
-        handleBackToProfileFromHighlights(true);
+      if (openedFromAccountMenu && ACCOUNT_SUBPAGES.has(activeNav)) {
+        handleBackFromAccountPage(true);
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [activeNav, highlightsFromProfile, handleBackToProfileFromHighlights]);
+  }, [activeNav, openedFromAccountMenu, handleBackFromAccountPage]);
 
   // Text scaling & font class mapping
   const textSizeClasses = {
@@ -216,6 +239,8 @@ export default function App() {
     });
     setSavedItems([]);
     setHighlights([]);
+    setOpenedFromAccountMenu(false);
+    setActiveNav('home');
     setAccountNotice('Your account data has been cleared from this session.');
     setTimeout(() => setAccountNotice(''), 5000);
   };
@@ -245,7 +270,7 @@ export default function App() {
           onBack={() => setReaderBook(null)}
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenAddFile={() => setIsAddFileOpen(true)}
-          onOpenProfile={() => setIsProfileOpen(true)}
+          onOpenProfile={() => setIsAccountMenuOpen(true)}
           defaultTheme={readerTheme}
           defaultFont={fontMode === 'inter' ? 'lexend' : fontMode}
           defaultSpeed={audioDefaults.playbackSpeed}
@@ -258,21 +283,22 @@ export default function App() {
             activeNav={activeNav}
             setActiveNav={handleNavChange}
             onOpenSearch={() => setIsSearchOpen(true)}
-            onOpenProfile={() => setIsProfileOpen(true)}
+            onOpenProfile={() => setIsAccountMenuOpen(true)}
             onOpenVoiceReader={() => {
               setSelectedAudioBook(null);
               setIsAudioPlayerOpen(true);
             }}
             profile={profile}
+            avatarButtonRef={avatarTriggerRef}
           />
 
           {accountNotice && (
             <div
               role="status"
               aria-live="polite"
-              className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4"
+              className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 pt-4"
             >
-              <div className="bg-[#F9F7F2] border border-[#E2DDD2] rounded-2xl px-4 py-3 text-sm text-[#141416]">
+              <div className="bg-white border border-[#E4E4E7] rounded-md px-4 py-3 text-sm text-[#141416]">
                 {accountNotice}
               </div>
             </div>
@@ -280,36 +306,64 @@ export default function App() {
 
           {/* Main Centered Container */}
           <div className="flex-1 flex max-w-[1280px] w-full mx-auto">
-            <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-10">
+            <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-10">
               {activeNav === 'library' ? (
-                /* Library View */
                 <LibrarySection onOpenReader={handleOpenReader} />
               ) : activeNav === 'my-files' ? (
-                /* My Files View */
                 <MyFilesSection
                   onOpenFile={handleOpenReader}
                   onOpenUpload={() => setIsAddFileOpen(true)}
                 />
               ) : activeNav === 'saved-books' ? (
-                /* Saved Books View */
                 <SavedBooksSection
                   onOpenReader={handleOpenReader}
                   onOpenAudio={handleOpenAudioBook}
-                  onExploreLibrary={() => setActiveNav('library')}
+                  onExploreLibrary={() => handleNavChange('library')}
                   savedItems={savedItems}
                   setSavedItems={setSavedItems}
+                  onBack={
+                    openedFromAccountMenu
+                      ? () => handleBackFromAccountPage(false)
+                      : () => handleNavChange('home')
+                  }
                 />
               ) : activeNav === 'highlights' ? (
-                /* Highlights View */
                 <HighlightsSection
                   onOpenReader={handleOpenReader}
                   highlights={highlights}
                   setHighlights={setHighlights}
-                  onBackToProfile={
-                    highlightsFromProfile
-                      ? () => handleBackToProfileFromHighlights(false)
-                      : undefined
-                  }
+                  onBackToProfile={() => handleBackFromAccountPage(false)}
+                />
+              ) : activeNav === 'edit-profile' ? (
+                <EditProfilePage
+                  profile={profile}
+                  onSaveProfile={(updated) => setProfile((prev) => ({ ...prev, ...updated }))}
+                  onUploadAvatar={handleUploadAvatar}
+                  onRemoveAvatar={handleRemoveAvatar}
+                  onBack={() => handleBackFromAccountPage(false)}
+                />
+              ) : activeNav === 'accessibility' ? (
+                <AccessibilityPage
+                  accessibilityState={accessibilityState}
+                  onChangeAccessibility={handleChangeAccessibility}
+                  onBack={() => handleBackFromAccountPage(false)}
+                />
+              ) : activeNav === 'settings' ? (
+                <SettingsPage
+                  profile={profile}
+                  onSaveProfile={(updated) => setProfile((prev) => ({ ...prev, ...updated }))}
+                  accessibilityState={accessibilityState}
+                  onChangeAccessibility={handleChangeAccessibility}
+                  audioDefaults={audioDefaults}
+                  onSaveAudioDefaults={setAudioDefaults}
+                  onOpenEditProfile={() => handleSelectAccountItem('edit-profile')}
+                  onDownloadData={handleDownloadData}
+                  onDeleteAccount={handleDeleteAccount}
+                  onBack={() => handleBackFromAccountPage(false)}
+                />
+              ) : activeNav === 'help' ? (
+                <HelpPage
+                  onBack={() => handleBackFromAccountPage(false)}
                 />
               ) : (
                 /* Home View */
@@ -317,7 +371,7 @@ export default function App() {
                   {/* Hero Banner: "A LIBRARY THAT GETS YOU" */}
                   <div className={focusMode ? 'focus-dimmed' : ''}>
                     <HeroBanner
-                      onExplore={() => setActiveNav('library')}
+                      onExplore={() => handleNavChange('library')}
                       onTryAudio={() => {
                         setSelectedAudioBook(null);
                         setIsAudioPlayerOpen(true);
@@ -330,7 +384,7 @@ export default function App() {
                     <PickUpSection
                       onContinueReading={handleOpenReader}
                       onContinueListening={handleOpenAudioBook}
-                      onViewHistory={() => setActiveNav('saved-books')}
+                      onViewHistory={() => handleNavChange('saved-books')}
                     />
                   </div>
 
@@ -338,13 +392,12 @@ export default function App() {
                   <div id="curiosity-section" className={focusMode ? 'focus-dimmed' : ''}>
                     <CuriositySection
                       onSelectBook={handleOpenReader}
-                      onExploreAll={() => setActiveNav('library')}
+                      onExploreAll={() => handleNavChange('library')}
                     />
                   </div>
 
                   {/* Section 3: Pastel Editorial Feature Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 pt-2">
-                    {/* Card 1: Lavender */}
                     <div className="bg-[#E3DFFA] rounded-2xl p-6 sm:p-7">
                       <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#3A2AD9] block mb-2">
                         READ
@@ -357,7 +410,6 @@ export default function App() {
                       </p>
                     </div>
 
-                    {/* Card 2: Peach */}
                     <div className="bg-[#FAD8C4] rounded-2xl p-6 sm:p-7">
                       <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#9A421C] block mb-2">
                         LISTEN
@@ -370,7 +422,6 @@ export default function App() {
                       </p>
                     </div>
 
-                    {/* Card 3: Soft White */}
                     <div className="bg-[#FAF8F5] border border-[#E5DFD3] rounded-2xl p-6 sm:p-7">
                       <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#3A2AD9] block mb-2">
                         BELONG
@@ -395,13 +446,13 @@ export default function App() {
           <MobileBottomNav
             activeNav={activeNav}
             setActiveNav={handleNavChange}
-            onOpenProfile={() => setIsProfileOpen(true)}
+            onOpenProfile={() => setIsAccountMenuOpen(true)}
             profile={profile}
           />
         </div>
       )}
 
-      {/* Modals & Dialogs */}
+      {/* Modals & Account Drawer */}
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -438,29 +489,14 @@ export default function App() {
         setFocusMode={setFocusMode}
       />
 
-      <ProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
+      <AccountDrawer
+        isOpen={isAccountMenuOpen}
+        onClose={() => setIsAccountMenuOpen(false)}
         profile={profile}
-        onSaveProfile={(updated) => setProfile((prev) => ({ ...prev, ...updated }))}
-        onUploadAvatar={handleUploadAvatar}
-        onRemoveAvatar={handleRemoveAvatar}
-        audioDefaults={audioDefaults}
-        onSaveAudioDefaults={setAudioDefaults}
-        accessibilityState={accessibilityState}
-        onChangeAccessibility={handleChangeAccessibility}
-        savedCount={savedItems.length}
-        highlightsCount={highlights.length}
-        onOpenHighlights={() => {
-          navBeforeHighlightsRef.current = activeNav;
-          setHighlightsFromProfile(true);
-          setIsProfileOpen(false);
-          setActiveNav('highlights');
-          window.history.pushState({ neuroreadScreen: 'highlights-from-profile' }, '');
-        }}
-        onDownloadData={handleDownloadData}
+        activeItem={ACCOUNT_SUBPAGES.has(activeNav) ? activeNav : ''}
+        onSelectItem={handleSelectAccountItem}
         onSignOut={handleSignOut}
-        onDeleteAccount={handleDeleteAccount}
+        returnFocusRef={avatarTriggerRef}
       />
     </div>
   );

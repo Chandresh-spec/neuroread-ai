@@ -9,7 +9,7 @@ import {
 
 /**
  * Shared Accessibility & Reading Preferences panel.
- * Reused by both PreferencesModal and ProfileModal/Settings so controls live in one place.
+ * Stacks all sections vertically inside a single column for consistent readability.
  */
 export default function AccessibilityPanel({
   fontMode,
@@ -22,6 +22,7 @@ export default function AccessibilityPanel({
   setReaderTheme,
   focusMode,
   setFocusMode,
+  layout = 'modal', // 'modal' | 'page'
 }) {
   const profiles = [
     {
@@ -75,14 +76,16 @@ export default function AccessibilityPanel({
     }
   };
 
+  const sectionDivider = layout === 'page' ? 'border-t border-[#E4E4E7] pt-8' : '';
+
   return (
-    <div className="space-y-6">
+    <div className={layout === 'page' ? 'space-y-8' : 'space-y-6'}>
       {/* Cognitive Reading Presets */}
-      <fieldset className="space-y-2.5">
-        <legend className="text-sm font-semibold text-[#141416] mb-1">
+      <fieldset className={`space-y-3 ${sectionDivider}`}>
+        <legend className="text-sm font-semibold text-[#141416]">
           Reading preset
         </legend>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {profiles.map((p) => {
             const isSelected = activeProfile === p.id;
             return (
@@ -111,7 +114,7 @@ export default function AccessibilityPanel({
       </fieldset>
 
       {/* Default Font */}
-      <fieldset>
+      <fieldset className={sectionDivider}>
         <legend className="text-sm font-semibold text-[#141416] mb-2">
           Default font
         </legend>
@@ -147,8 +150,8 @@ export default function AccessibilityPanel({
       </fieldset>
 
       {/* Text Size */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
+      <div className={sectionDivider}>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <span id="pref-text-size-label" className="text-sm font-semibold text-[#141416]">
             Text size
           </span>
@@ -160,7 +163,7 @@ export default function AccessibilityPanel({
         <div
           role="radiogroup"
           aria-labelledby="pref-text-size-label"
-          className="grid grid-cols-5 gap-1.5 bg-white p-1.5 rounded-xl border border-[#E4E4E7]"
+          className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white p-1.5 rounded-xl border border-[#E4E4E7]"
         >
           {TEXT_SIZE_OPTIONS.map((opt) => {
             const isSelected = textSize === opt.value;
@@ -171,7 +174,7 @@ export default function AccessibilityPanel({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => setTextSize(opt.value)}
-                className={`min-h-[44px] px-1.5 py-2 rounded-lg text-xs font-semibold transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${
+                className={`min-h-[44px] px-2 py-2 rounded-lg text-xs font-semibold transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${
                   isSelected
                     ? 'bg-[#3B2FD6] text-white'
                     : 'text-[#141416] hover:bg-[#F4F4F5]'
@@ -185,14 +188,14 @@ export default function AccessibilityPanel({
       </div>
 
       {/* Line Spacing */}
-      <div>
+      <div className={sectionDivider}>
         <span id="pref-line-spacing-label" className="block text-sm font-semibold text-[#141416] mb-2">
           Line spacing
         </span>
         <div
           role="radiogroup"
           aria-labelledby="pref-line-spacing-label"
-          className="grid grid-cols-3 gap-2 bg-white p-1.5 rounded-xl border border-[#E4E4E7]"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-white p-1.5 rounded-xl border border-[#E4E4E7]"
         >
           {LINE_SPACING_OPTIONS.map((opt) => {
             const isSelected = lineSpacing === opt.id;
@@ -217,7 +220,7 @@ export default function AccessibilityPanel({
       </div>
 
       {/* Reader Theme */}
-      <div>
+      <div className={sectionDivider}>
         <span id="pref-theme-label" className="block text-sm font-semibold text-[#141416] mb-2">
           Reader theme
         </span>
@@ -246,7 +249,7 @@ export default function AccessibilityPanel({
                   style={{ backgroundColor: t.swatch }}
                   aria-hidden="true"
                 />
-                <span className="text-xs font-semibold">{t.label}</span>
+                <span className="text-xs font-semibold truncate">{t.label}</span>
               </button>
             );
           })}
@@ -254,36 +257,38 @@ export default function AccessibilityPanel({
       </div>
 
       {/* Focus Mode Switch */}
-      <div className="flex items-center justify-between gap-4 p-3.5 bg-white border border-[#E4E4E7] rounded-xl">
-        <div>
-          <p id="focus-mode-title" className="text-sm font-semibold text-[#141416]">
-            Focus mode
-          </p>
-          <p id="focus-mode-desc" className="text-xs text-[#524E48]">
-            Softens surrounding sections while you read
-          </p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={focusMode}
-          aria-labelledby="focus-mode-title"
-          aria-describedby="focus-mode-desc"
-          onClick={() => setFocusMode(!focusMode)}
-          className={`min-w-[52px] min-h-[44px] flex items-center justify-center rounded-xl px-1 transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]`}
-        >
-          <span
-            className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors motion-reduce:transition-none ${
-              focusMode ? 'bg-[#3B2FD6]' : 'bg-[#D4D4D8]'
-            }`}
+      <div className={sectionDivider}>
+        <div className="flex items-center justify-between gap-4 p-3.5 bg-white border border-[#E4E4E7] rounded-xl">
+          <div className="min-w-0">
+            <p id="focus-mode-title" className="text-sm font-semibold text-[#141416]">
+              Focus mode
+            </p>
+            <p id="focus-mode-desc" className="text-xs text-[#524E48]">
+              Softens surrounding sections while you read
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={focusMode}
+            aria-labelledby="focus-mode-title"
+            aria-describedby="focus-mode-desc"
+            onClick={() => setFocusMode(!focusMode)}
+            className="min-w-[52px] min-h-[44px] flex items-center justify-center rounded-xl px-1 flex-shrink-0 transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
           >
             <span
-              className={`bg-white w-5 h-5 rounded-full shadow-xs transform transition-transform motion-reduce:transition-none ${
-                focusMode ? 'translate-x-5' : 'translate-x-0'
+              className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors motion-reduce:transition-none ${
+                focusMode ? 'bg-[#3B2FD6]' : 'bg-[#D4D4D8]'
               }`}
-            />
-          </span>
-        </button>
+            >
+              <span
+                className={`bg-white w-5 h-5 rounded-full shadow-xs transform transition-transform motion-reduce:transition-none ${
+                  focusMode ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

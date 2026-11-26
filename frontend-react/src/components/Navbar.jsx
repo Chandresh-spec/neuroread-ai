@@ -9,6 +9,7 @@ export default function Navbar({
   onOpenProfile,
   onOpenVoiceReader,
   profile,
+  avatarButtonRef,
 }) {
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -19,7 +20,7 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#E5DFD3] transition-colors">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Logo */}
         <button
           onClick={() => setActiveNav?.('home')}
@@ -82,10 +83,11 @@ export default function Navbar({
 
             {/* Circular User Profile Avatar */}
             <button
+              ref={avatarButtonRef}
               type="button"
               onClick={onOpenProfile}
-              aria-label="Open profile, highlights, and settings"
-              title="Profile & settings"
+              aria-label="Open account menu"
+              title="Account menu"
               className="relative group min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
             >
               <UserAvatar
