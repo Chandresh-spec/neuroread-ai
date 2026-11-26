@@ -1,13 +1,14 @@
 import React from 'react';
-import { Search, Headphones } from 'lucide-react';
+import { Headphones } from 'lucide-react';
 import UserAvatar from './UserAvatar';
 
 export default function Navbar({
   activeNav,
   setActiveNav,
-  onOpenSearch,
   onOpenProfile,
+  onOpenLogin,
   onOpenVoiceReader,
+  isAuthenticated = false,
   profile,
   avatarButtonRef,
 }) {
@@ -34,7 +35,7 @@ export default function Navbar({
           </span>
         </button>
 
-        {/* Right: Horizontal Menu Links + Voice Reader + Search + Profile Avatar */}
+        {/* Right: Horizontal Menu Links + Voice Reader + Sign In / Profile Avatar */}
         <div className="flex items-center gap-4 sm:gap-6 h-full flex-shrink-0">
           {/* Horizontal Navigation Links (Tablet & Desktop: md+) */}
           <nav className="hidden md:flex items-center gap-6 lg:gap-7 h-full">
@@ -71,34 +72,35 @@ export default function Navbar({
               <span>Voice Reader</span>
             </button>
 
-            {/* Circular Search Button */}
-            <button
-              onClick={onOpenSearch}
-              aria-label="Search books"
-              title="Search (Ctrl+K)"
-              className="w-9 h-9 rounded-full bg-white hover:bg-[#FAF8F5] border border-[#E2DCD0] flex items-center justify-center text-[#141416] hover:border-[#3A2AD9]/40 transition-colors shadow-2xs"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-
-            {/* Circular User Profile Avatar */}
-            <button
-              ref={avatarButtonRef}
-              type="button"
-              onClick={onOpenProfile}
-              aria-label="Open account menu"
-              title="Account menu"
-              className="relative group min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
-            >
-              <UserAvatar
-                name={profile?.displayName || 'Alex Morgan'}
-                src={profile?.avatarUrl}
-                sizeClass="w-9 h-9"
-                textClass="text-xs"
-                ringClass="ring-2 ring-[#FAD8C4] group-hover:ring-[#3B2FD6] transition-all motion-reduce:transition-none"
-              />
-              <span className="sr-only">Profile</span>
-            </button>
+            {isAuthenticated ? (
+              /* Circular User Profile Avatar (Hidden on mobile < md, shown on tablet/desktop) */
+              <button
+                ref={avatarButtonRef}
+                type="button"
+                onClick={onOpenProfile}
+                aria-label="Open account menu"
+                title="Account menu"
+                className="hidden md:flex relative group min-w-[44px] min-h-[44px] items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
+              >
+                <UserAvatar
+                  name={profile?.displayName || 'Alex Morgan'}
+                  src={profile?.avatarUrl}
+                  sizeClass="w-9 h-9"
+                  textClass="text-xs"
+                  ringClass="ring-2 ring-[#FAD8C4] group-hover:ring-[#3B2FD6] transition-all motion-reduce:transition-none"
+                />
+                <span className="sr-only">Profile</span>
+              </button>
+            ) : (
+              /* Sign In CTA Button */
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="inline-flex items-center justify-center px-4 py-1.5 sm:py-2 rounded-full bg-[#3A2AD9] hover:bg-[#3021C2] text-white text-xs font-semibold transition-all shadow-xs active:scale-95"
+              >
+                Sign in
+              </button>
+            )}
           </div>
         </div>
       </div>

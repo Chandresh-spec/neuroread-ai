@@ -14,7 +14,9 @@ export default function MobileBottomNav({
   activeNav,
   setActiveNav,
   onOpenProfile,
+  onOpenLogin,
   isAccountMenuOpen = false,
+  isAuthenticated = false,
   profile,
 }) {
   const tabs = [
@@ -22,7 +24,13 @@ export default function MobileBottomNav({
     { id: 'library', label: 'Library', icon: BookOpen },
     { id: 'my-files', label: 'Files', icon: FileText },
     { id: 'saved-books', label: 'Saved', icon: Bookmark },
-    { id: 'profile', label: 'Profile', icon: User, isAction: true, isProfile: true },
+    {
+      id: 'profile',
+      label: isAuthenticated ? 'Profile' : 'Sign in',
+      icon: User,
+      isAction: true,
+      isProfile: true,
+    },
   ];
 
   const isProfileActive = isAccountMenuOpen || PROFILE_PAGES.has(activeNav);
@@ -35,7 +43,7 @@ export default function MobileBottomNav({
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = tab.isProfile
-          ? isProfileActive
+          ? isAuthenticated && isProfileActive
           : !isAccountMenuOpen && activeNav === tab.id;
 
         return (
@@ -43,10 +51,14 @@ export default function MobileBottomNav({
             key={tab.id}
             type="button"
             aria-current={isActive ? 'page' : undefined}
-            aria-expanded={tab.isProfile ? isAccountMenuOpen : undefined}
+            aria-expanded={tab.isProfile && isAuthenticated ? isAccountMenuOpen : undefined}
             onClick={() => {
               if (tab.isAction) {
-                onOpenProfile();
+                if (isAuthenticated) {
+                  onOpenProfile();
+                } else {
+                  onOpenLogin?.();
+                }
               } else {
                 setActiveNav(tab.id);
               }
@@ -56,7 +68,7 @@ export default function MobileBottomNav({
             }`}
           >
             <div className="relative flex items-center justify-center">
-              {tab.isProfile ? (
+              {tab.isProfile && isAuthenticated ? (
                 <UserAvatar
                   name={profile?.displayName || 'Alex Morgan'}
                   src={profile?.avatarUrl}

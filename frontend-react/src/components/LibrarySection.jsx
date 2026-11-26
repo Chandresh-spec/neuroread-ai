@@ -520,15 +520,15 @@ export default function LibrarySection({ onOpenReader }) {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        <div className="sm:hidden relative">
-          <Search className="w-3.5 h-3.5 text-[#7B756D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Inline Search Bar */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-[#6B665F] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search books, authors, or genres..."
-            className="w-full bg-white border border-[#E5DFD3] rounded-xl pl-9 pr-3 py-2 text-xs text-[#141416] placeholder-[#8C867E] focus:outline-none focus:border-[#3A2AD9]"
+            className="w-full bg-[#F7F6F3] hover:bg-[#F3F1EC] focus:bg-white border border-[#E4E1DA] focus:border-[#3A2AD9] rounded-full pl-10 pr-4 py-2.5 text-sm text-[#141416] placeholder-[#7B756D] focus:outline-none transition-colors"
           />
         </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Navbar from './components/Navbar';
+import BodySearchBar from './components/BodySearchBar';
 import HeroBanner from './components/HeroBanner';
 import PickUpSection from './components/PickUpSection';
 import CuriositySection from './components/CuriositySection';
@@ -18,6 +19,7 @@ import AddFileModal from './components/AddFileModal';
 import AudioPlayerModal from './components/AudioPlayerModal';
 import PreferencesModal from './components/PreferencesModal';
 import AccountDrawer from './components/AccountDrawer';
+import LoginModal from './components/LoginModal';
 import ReaderView from './components/ReaderView';
 import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
 
@@ -64,6 +66,7 @@ export default function App() {
   const navBeforeAccountRef = useRef('home');
   const skipNextAccountPopRef = useRef(false);
   const avatarTriggerRef = useRef(null);
+  const bodySearchRef = useRef(null);
 
   // Modals & Drawer State
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -71,6 +74,10 @@ export default function App() {
   const [isAudioPlayerOpen, setIsAudioPlayerOpen] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => localStorage.getItem('neuroread_auth') === 'true'
+  );
   const [selectedAudioBook, setSelectedAudioBook] = useState(null);
 
   const handleNavChange = (nextNav) => {
@@ -104,7 +111,7 @@ export default function App() {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
+        if (readerBook) { setIsSearchOpen((prev) => !prev); } else { setActiveNav('home'); requestAnimationFrame(() => bodySearchRef.current?.focus()); }
         return;
       }
       if (
@@ -226,7 +233,14 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleAuthSuccess = (authUser) => { setProfile((prev) => ({ ...prev, displayName: authUser?.displayName || prev.displayName, email: authUser?.email || prev.email })); setIsAuthenticated(true); localStorage.setItem('neuroread_auth', 'true'); setAccountNotice(`Welcome back, ${authUser?.displayName || profile.displayName}!`); setTimeout(() => setAccountNotice(''), 4000); };
+
   const handleSignOut = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('neuroread_auth');
+    localStorage.removeItem('neuroread_access_token');
+    setIsAccountMenuOpen(false);
+    setOpenedFromAccountMenu(false);
     setAccountNotice('You have signed out of your session.');
     setTimeout(() => setAccountNotice(''), 4000);
   };
@@ -283,8 +297,10 @@ export default function App() {
           <Navbar
             activeNav={activeNav}
             setActiveNav={handleNavChange}
-            onOpenSearch={() => setIsSearchOpen(true)}
+
             onOpenProfile={() => setIsAccountMenuOpen(true)}
+            onOpenLogin={() => setIsLoginOpen(true)}
+            isAuthenticated={isAuthenticated}
             onOpenVoiceReader={() => {
               setSelectedAudioBook(null);
               setIsAudioPlayerOpen(true);
@@ -370,6 +386,9 @@ export default function App() {
                 /* Home View */
                 <>
                   {/* Hero Banner: "A LIBRARY THAT GETS YOU" */}
+                  {/* Inline Search Bar in Body */}
+                  <BodySearchBar onSelectBook={handleOpenReader} inputRef={bodySearchRef} />
+
                   <div className={focusMode ? 'focus-dimmed' : ''}>
                     <HeroBanner
                       onExplore={() => handleNavChange('library')}
@@ -451,7 +470,9 @@ export default function App() {
             activeNav={activeNav}
             setActiveNav={handleNavChange}
             onOpenProfile={() => setIsAccountMenuOpen((prev) => !prev)}
+            onOpenLogin={() => setIsLoginOpen(true)}
             isAccountMenuOpen={isAccountMenuOpen}
+            isAuthenticated={isAuthenticated}
             profile={profile}
           />
         </div>
@@ -502,6 +523,15 @@ export default function App() {
         onSelectItem={handleSelectAccountItem}
         onSignOut={handleSignOut}
         returnFocusRef={avatarTriggerRef}
+      />
+
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      <span className="hidden" aria-hidden="true"
       />
     </div>
   );
