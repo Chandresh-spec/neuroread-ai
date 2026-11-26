@@ -74,6 +74,7 @@ export default function App() {
   const [selectedAudioBook, setSelectedAudioBook] = useState(null);
 
   const handleNavChange = (nextNav) => {
+    setIsAccountMenuOpen(false);
     setOpenedFromAccountMenu(false);
     setActiveNav(nextNav);
   };
@@ -449,7 +450,8 @@ export default function App() {
           <MobileBottomNav
             activeNav={activeNav}
             setActiveNav={handleNavChange}
-            onOpenProfile={() => setIsAccountMenuOpen(true)}
+            onOpenProfile={() => setIsAccountMenuOpen((prev) => !prev)}
+            isAccountMenuOpen={isAccountMenuOpen}
             profile={profile}
           />
         </div>

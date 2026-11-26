@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
+  ArrowLeft,
   X,
   User,
   Highlighter,
@@ -48,10 +49,18 @@ function AccountDrawerPanel({
   const drawerRef = useRef(null);
   const closeButtonRef = useRef(null);
   const capturedTriggerRef = useRef(null);
-  const navigatedAwayRef = useRef(false);
+
+  const closeAndRestoreFocus = useCallback(() => {
+    const target = returnFocusRef?.current || capturedTriggerRef.current;
+    onClose();
+    requestAnimationFrame(() => {
+      if (target && typeof target.focus === 'function') {
+        target.focus();
+      }
+    });
+  }, [onClose, returnFocusRef]);
 
   useEffect(() => {
-    const fallbackTrigger = returnFocusRef?.current;
     capturedTriggerRef.current = document.activeElement;
     requestAnimationFrame(() => {
       closeButtonRef.current?.focus();
@@ -64,7 +73,7 @@ function AccountDrawerPanel({
           setConfirmSignOut(false);
           return;
         }
-        onClose();
+        closeAndRestoreFocus();
         return;
       }
 
@@ -88,14 +97,8 @@ function AccountDrawerPanel({
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      if (!navigatedAwayRef.current) {
-        const target = fallbackTrigger || capturedTriggerRef.current;
-        if (target && typeof target.focus === 'function') {
-          target.focus();
-        }
-      }
     };
-  }, [onClose, confirmSignOut, returnFocusRef]);
+  }, [closeAndRestoreFocus, confirmSignOut]);
 
   const menuItems = [
     { id: 'edit-profile', label: 'Edit profile', icon: User },
@@ -107,14 +110,13 @@ function AccountDrawerPanel({
   ];
 
   const handleNavigate = (itemId) => {
-    navigatedAwayRef.current = true;
     onSelectItem(itemId);
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/35 backdrop-fade-in"
-      onClick={onClose}
+      className="fixed inset-x-0 top-0 bottom-16 md:bottom-0 z-40 flex justify-end bg-black/35 backdrop-fade-in"
+      onClick={closeAndRestoreFocus}
     >
       <aside
         ref={drawerRef}
@@ -124,19 +126,31 @@ function AccountDrawerPanel({
         onClick={(e) => e.stopPropagation()}
         className="w-full sm:w-[320px] h-full bg-white border-l border-[#E4E4E7] flex flex-col drawer-slide-in"
       >
-        {/* Close button + Identity header */}
-        <div className="px-4 pt-4 pb-4 border-b border-[#E4E4E7] relative">
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Close account menu"
-            className="absolute top-2 right-2 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5] rounded-md transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6]"
-          >
-            <X className="w-4 h-4 pointer-events-none" strokeWidth={1.75} aria-hidden="true" />
-          </button>
+        {/* Top bar (Back + Close) & Identity header */}
+        <div className="px-4 pt-2 pb-4 border-b border-[#E4E4E7] space-y-2">
+          <div className="flex items-center justify-between -mx-2">
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={closeAndRestoreFocus}
+              aria-label="Back"
+              className="inline-flex items-center gap-2 min-w-[44px] min-h-[44px] px-2 text-sm text-[#141416] hover:text-[#3B2FD6] hover:bg-[#F4F4F5] rounded-md transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6]"
+            >
+              <ArrowLeft className="w-4 h-4 pointer-events-none" strokeWidth={1.75} aria-hidden="true" />
+              <span>Back</span>
+            </button>
 
-          <div className="flex items-center gap-3 pr-10 min-w-0">
+            <button
+              type="button"
+              onClick={closeAndRestoreFocus}
+              aria-label="Close account menu"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5] rounded-md transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6]"
+            >
+              <X className="w-4 h-4 pointer-events-none" strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 min-w-0">
             <UserAvatar
               name={profile.displayName}
               src={profile.avatarUrl}
@@ -220,9 +234,8 @@ function AccountDrawerPanel({
                 <button
                   type="button"
                   onClick={() => {
-                    navigatedAwayRef.current = false;
                     setConfirmSignOut(false);
-                    onClose();
+                    closeAndRestoreFocus();
                     onSignOut?.();
                   }}
                   className="min-h-[44px] px-2 text-sm font-medium text-[#141416] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
