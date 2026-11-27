@@ -3,12 +3,15 @@ import {
   ArrowLeft,
   X,
   User,
-  Highlighter,
   Bookmark,
-  Sliders,
   Settings,
   HelpCircle,
   LogOut,
+  ChevronRight,
+  Crown,
+  Pencil,
+  Receipt,
+  Accessibility,
 } from 'lucide-react';
 import UserAvatar from './UserAvatar';
 
@@ -23,7 +26,11 @@ export default function AccountDrawer({
   onSelectItem,
   onSignOut,
   returnFocusRef,
-  savedCount,
+  savedCount = 6,
+  highlightsCount = 48,
+  onUpgradePremium,
+  accessibilityState,
+  onChangeAccessibility,
 }) {
   if (!isOpen) return null;
   return (
@@ -35,7 +42,32 @@ export default function AccountDrawer({
       onSignOut={onSignOut}
       returnFocusRef={returnFocusRef}
       savedCount={savedCount}
+      highlightsCount={highlightsCount}
+      onUpgradePremium={onUpgradePremium}
+      accessibilityState={accessibilityState}
+      onChangeAccessibility={onChangeAccessibility}
     />
+  );
+}
+
+function ToggleSwitch({ checked, onChange, label }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-10 flex-shrink-0 items-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8] ${
+        checked ? 'bg-[#4B3AE8]' : 'bg-[#D6D2E2]'
+      }`}
+    >
+      <span
+        className={`inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-xs transition-transform ${
+          checked ? 'translate-x-[19px]' : 'translate-x-[3px]'
+        }`}
+      />
+    </button>
   );
 }
 
@@ -47,11 +79,22 @@ function AccountDrawerPanel({
   onSignOut,
   returnFocusRef,
   savedCount,
+  highlightsCount,
+  onUpgradePremium,
+  accessibilityState,
+  onChangeAccessibility,
 }) {
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [readAloudOn, setReadAloudOn] = useState(true);
+  const [darkModeOn, setDarkModeOn] = useState(
+    () => accessibilityState?.readerTheme === 'dark'
+  );
   const drawerRef = useRef(null);
   const closeButtonRef = useRef(null);
   const capturedTriggerRef = useRef(null);
+
+  const isDyslexicOn = accessibilityState?.fontMode === 'dyslexic';
+  const isFocusOn = !!accessibilityState?.focusMode;
 
   const closeAndRestoreFocus = useCallback(() => {
     const target = returnFocusRef?.current || capturedTriggerRef.current;
@@ -103,22 +146,88 @@ function AccountDrawerPanel({
     };
   }, [closeAndRestoreFocus, confirmSignOut]);
 
-  const menuItems = [
-    { id: 'edit-profile', label: 'Edit profile', icon: User },
-    { id: 'highlights', label: 'Highlights', icon: Highlighter },
-    { id: 'saved-books', label: 'Saved books', icon: Bookmark, count: savedCount },
-    { id: 'accessibility', label: 'Accessibility', icon: Sliders },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'help', label: 'Help', icon: HelpCircle },
+  const readingMenuItems = [
+    {
+      id: 'highlights',
+      label: 'Highlights',
+      subtitle: 'Notes and quotes you saved',
+      icon: Pencil,
+    },
+    {
+      id: 'saved-books',
+      label: 'Saved books',
+      icon: Bookmark,
+      count: savedCount,
+    },
+    {
+      id: 'library',
+      label: 'Purchases and rentals',
+      subtitle: '2 rentals expire soon',
+      icon: Receipt,
+    },
   ];
 
-  const handleNavigate = (itemId) => {
-    onSelectItem(itemId);
+  const accountMenuItems = [
+    { id: 'edit-profile', label: 'Edit profile', icon: User },
+    {
+      id: 'accessibility',
+      label: 'Accessibility settings',
+      subtitle: 'Fonts, colours, spacing',
+      icon: Accessibility,
+    },
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'help', label: 'Help and support', icon: HelpCircle },
+  ];
+
+  const renderMenuRow = (item) => {
+    const Icon = item.icon;
+    const targetId = item.navTarget || item.id;
+    const isActive = activeItem === item.id;
+
+    return (
+      <li key={item.id}>
+        <button
+          type="button"
+          onClick={() => onSelectItem(targetId)}
+          aria-current={isActive ? 'page' : undefined}
+          className={`w-full px-3 py-2.5 rounded-xl flex items-center gap-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#4B3AE8] ${
+            isActive ? 'bg-[#F5F3FF]' : 'hover:bg-[#F7F6FB]'
+          }`}
+        >
+          <span className="w-9 h-9 rounded-xl bg-[#EFEBFD] text-[#4B3AE8] flex items-center justify-center flex-shrink-0">
+            <Icon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+          </span>
+
+          <div className="flex-1 min-w-0">
+            <span
+              className={`block text-[13.5px] font-bold leading-snug ${
+                isActive ? 'text-[#4B3AE8]' : 'text-[#141416]'
+              }`}
+            >
+              {item.label}
+            </span>
+            {item.subtitle && (
+              <span className="block text-[11px] text-[#7A7585] truncate mt-0.5">
+                {item.subtitle}
+              </span>
+            )}
+          </div>
+
+          {typeof item.count === 'number' && (
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#EFEBFD] text-[#4B3AE8]">
+              {item.count}
+            </span>
+          )}
+
+          <ChevronRight className="w-4 h-4 text-[#8B8598] flex-shrink-0" aria-hidden="true" />
+        </button>
+      </li>
+    );
   };
 
   return (
     <div
-      className="fixed inset-x-0 top-0 bottom-16 md:bottom-0 z-40 flex justify-end bg-black/35 backdrop-fade-in"
+      className="fixed inset-x-0 top-0 bottom-16 md:bottom-0 z-50 flex justify-end bg-black/40 backdrop-fade-in"
       onClick={closeAndRestoreFocus}
     >
       <aside
@@ -127,132 +236,218 @@ function AccountDrawerPanel({
         aria-modal="true"
         aria-labelledby="account-drawer-name"
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:w-[320px] h-full bg-white border-l border-[#E4E4E7] flex flex-col drawer-slide-in"
+        className="w-full sm:w-[360px] h-full min-h-0 overflow-hidden bg-white border-l border-[#EAE6F0] flex flex-col drawer-slide-in shadow-2xl"
       >
-        {/* Top bar (Back + Close) & Identity header */}
-        <div className="px-4 pt-2 pb-4 border-b border-[#E4E4E7] space-y-2">
-          <div className="flex items-center justify-between -mx-2">
-            <button
-              ref={closeButtonRef}
-              type="button"
-              onClick={closeAndRestoreFocus}
-              aria-label="Back"
-              className="inline-flex items-center gap-2 min-w-[44px] min-h-[44px] px-2 text-sm text-[#141416] hover:text-[#3B2FD6] hover:bg-[#F4F4F5] rounded-md transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6]"
-            >
-              <ArrowLeft className="w-4 h-4 pointer-events-none" strokeWidth={1.75} aria-hidden="true" />
-              <span>Back</span>
-            </button>
+        {/* Top Bar: Back + Close */}
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between flex-shrink-0">
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={closeAndRestoreFocus}
+            aria-label="Back"
+            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-[#4B4754] hover:text-[#141416] hover:bg-[#F5F3F9] rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            <span>Back</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={closeAndRestoreFocus}
-              aria-label="Close account menu"
-              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5] rounded-md transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6]"
-            >
-              <X className="w-4 h-4 pointer-events-none" strokeWidth={1.75} aria-hidden="true" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={closeAndRestoreFocus}
+            aria-label="Close account menu"
+            className="w-9 h-9 flex items-center justify-center text-[#5E5A68] hover:text-[#141416] hover:bg-[#F5F3F9] rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
 
-          <div className="flex items-center gap-3 min-w-0">
-            <UserAvatar
-              name={profile.displayName}
-              src={profile.avatarUrl}
-              sizeClass="w-11 h-11 flex-shrink-0"
-              textClass="text-sm"
-              ringClass="ring-1 ring-[#E4E4E7]"
-            />
+        {/* Scrollable Body */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-6 space-y-5">
+          {/* Identity Header */}
+          <div className="flex items-center gap-3.5 pt-1">
+            <div className="p-0.5 rounded-full ring-2 ring-[#4B3AE8]">
+              <UserAvatar
+                name={profile.displayName}
+                src={profile.avatarUrl}
+                sizeClass="w-14 h-14 flex-shrink-0"
+                textClass="text-lg font-extrabold"
+                ringClass=""
+              />
+            </div>
+
             <div className="min-w-0 flex-1">
               <p
                 id="account-drawer-name"
-                className="font-editorial text-lg font-bold text-[#141416] leading-snug truncate"
+                className="text-lg font-extrabold text-[#111115] leading-tight truncate"
               >
                 {profile.displayName}
               </p>
-              <p className="text-xs text-[#524E48] truncate mt-0.5">{profile.email}</p>
+              <p className="text-xs text-[#686472] truncate mt-0.5">{profile.email}</p>
+              <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-[#F3F1FA] text-[11px] font-semibold text-[#524E5B]">
+                Free plan
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Plain list of account actions */}
-        <nav aria-label="Account menu" className="flex-1 overflow-y-auto">
-          <ul className="divide-y divide-[#E4E4E7] border-b border-[#E4E4E7]">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeItem === item.id;
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate(item.id)}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`w-full h-12 min-h-[48px] px-4 flex items-center gap-2 text-left text-sm transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6] ${
-                      isActive
-                        ? 'text-[#3B2FD6] font-medium bg-[#FAFAFC]'
-                        : 'text-[#141416] font-normal hover:bg-[#F4F4F5]'
-                    }`}
-                  >
-                    <Icon
-                      className={`w-4 h-4 flex-shrink-0 pointer-events-none ${
-                        isActive ? 'text-[#3B2FD6]' : 'text-[#524E48]'
-                      }`}
-                      strokeWidth={1.75}
-                      aria-hidden="true"
-                    />
-                    <span className="flex-1">{item.label}</span>
-                    {typeof item.count === 'number' && (
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#ECEAFD] text-[#3A2AD9]">
-                        {item.count}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+          {/* 2-Card Stats Row */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="rounded-xl bg-[#F7F6FB] py-2.5 px-3 text-center">
+              <div className="text-base font-extrabold text-[#141416] leading-tight">12</div>
+              <div className="text-[11px] font-medium text-[#736E7D] mt-0.5">Books read</div>
+            </div>
+            <div className="rounded-xl bg-[#F7F6FB] py-2.5 px-3 text-center">
+              <div className="text-base font-extrabold text-[#141416] leading-tight">
+                {highlightsCount}
+              </div>
+              <div className="text-[11px] font-medium text-[#736E7D] mt-0.5">Highlights</div>
+            </div>
+          </div>
 
-        {/* Divider & Quiet Sign Out Row at Bottom */}
-        <div className="border-t border-[#E4E4E7]">
-          {!confirmSignOut ? (
+          {/* PDF Storage Upgrade Card */}
+          <div className="rounded-2xl bg-gradient-to-br from-[#5240EE] to-[#4232D8] p-4 text-white shadow-md">
+            <h3 className="text-sm font-extrabold leading-snug">PDF storage</h3>
+            <p className="text-[11.5px] text-white/85 leading-relaxed mt-1">
+              Upload more PDFs and sync them on every device with Premium.
+            </p>
+
+            {/* Progress Bar */}
+            <div className="mt-3.5 h-1.5 w-full rounded-full bg-white/25 overflow-hidden">
+              <div className="h-full rounded-full bg-[#F7C948]" style={{ width: '74%' }} />
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] font-medium text-white/90 mt-1.5">
+              <span>148 MB used</span>
+              <span>200 MB total</span>
+            </div>
+
             <button
               type="button"
-              onClick={() => setConfirmSignOut(true)}
-              className="w-full h-12 min-h-[48px] px-4 flex items-center gap-2 text-left text-sm font-normal text-[#524E48] hover:text-[#141416] hover:bg-[#F4F4F5] transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#3B2FD6]"
+              onClick={() => {
+                onClose();
+                onUpgradePremium?.();
+              }}
+              className="mt-3.5 w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#F5F3FF] text-[#4B3AE8] text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors shadow-xs"
             >
-              <LogOut className="w-4 h-4 flex-shrink-0 pointer-events-none" strokeWidth={1.75} aria-hidden="true" />
-              <span>Sign out</span>
+              <Crown className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Upgrade to Premium</span>
             </button>
-          ) : (
-            <div
-              role="alertdialog"
-              aria-labelledby="drawer-signout-label"
-              className="px-4 py-2 flex items-center justify-between gap-2 min-h-[48px]"
-            >
-              <span id="drawer-signout-label" className="text-sm text-[#141416]">
-                Sign out?
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmSignOut(false)}
-                  className="min-h-[44px] px-2 text-sm text-[#524E48] hover:text-[#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConfirmSignOut(false);
-                    closeAndRestoreFocus();
-                    onSignOut?.();
+          </div>
+
+          {/* Reading Section */}
+          <div>
+            <p className="px-1 text-[11px] font-semibold text-[#7A7585] mb-1.5">Reading</p>
+            <ul className="space-y-0.5">{readingMenuItems.map(renderMenuRow)}</ul>
+          </div>
+
+          {/* Reading Comfort Toggles (2x2 Grid) */}
+          <div>
+            <p className="px-1 text-[11px] font-semibold text-[#7A7585] mb-2">Reading comfort</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-[#EAE6F0] bg-white px-3 py-2.5 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#141416] leading-tight">
+                  Dyslexia-friendly text
+                </span>
+                <ToggleSwitch
+                  checked={isDyslexicOn}
+                  label="Toggle dyslexia-friendly text"
+                  onChange={() =>
+                    onChangeAccessibility?.({
+                      fontMode: isDyslexicOn ? 'inter' : 'dyslexic',
+                    })
+                  }
+                />
+              </div>
+
+              <div className="rounded-xl border border-[#EAE6F0] bg-white px-3 py-2.5 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#141416] leading-tight">Focus line</span>
+                <ToggleSwitch
+                  checked={isFocusOn}
+                  label="Toggle focus line"
+                  onChange={() =>
+                    onChangeAccessibility?.({
+                      focusMode: !isFocusOn,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="rounded-xl border border-[#EAE6F0] bg-white px-3 py-2.5 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#141416] leading-tight">Read aloud</span>
+                <ToggleSwitch
+                  checked={readAloudOn}
+                  label="Toggle read aloud"
+                  onChange={() => setReadAloudOn((prev) => !prev)}
+                />
+              </div>
+
+              <div className="rounded-xl border border-[#EAE6F0] bg-white px-3 py-2.5 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#141416] leading-tight">Dark mode</span>
+                <ToggleSwitch
+                  checked={darkModeOn}
+                  label="Toggle dark mode"
+                  onChange={() => {
+                    const next = !darkModeOn;
+                    setDarkModeOn(next);
+                    onChangeAccessibility?.({
+                      readerTheme: next ? 'dark' : 'cream',
+                    });
                   }}
-                  className="min-h-[44px] px-2 text-sm font-medium text-[#141416] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6]"
-                >
-                  Sign out
-                </button>
+                />
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Account Section */}
+          <div>
+            <p className="px-1 text-[11px] font-semibold text-[#7A7585] mb-1.5">Account</p>
+            <ul className="space-y-0.5">{accountMenuItems.map(renderMenuRow)}</ul>
+          </div>
+
+          {/* Sign Out inside Profile Menu */}
+          <div className="border-t border-[#EFECE6] pt-3">
+            {!confirmSignOut ? (
+              <button
+                type="button"
+                onClick={() => setConfirmSignOut(true)}
+                className="w-full py-2 px-3 rounded-xl flex items-center gap-3 text-left text-sm font-bold text-[#D93829] hover:bg-[#FEF2F2] transition-colors"
+              >
+                <span className="w-9 h-9 rounded-xl bg-[#FEECEB] text-[#D93829] flex items-center justify-center flex-shrink-0">
+                  <LogOut className="w-4 h-4" aria-hidden="true" />
+                </span>
+                <span>Sign out</span>
+              </button>
+            ) : (
+              <div
+                role="alertdialog"
+                aria-labelledby="drawer-signout-label"
+                className="py-1.5 px-2 flex items-center justify-between gap-2 rounded-xl bg-[#FEF2F2]"
+              >
+                <span id="drawer-signout-label" className="text-xs font-semibold text-[#141416]">
+                  Sign out of session?
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmSignOut(false)}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#5E5A68] hover:bg-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmSignOut(false);
+                      closeAndRestoreFocus();
+                      onSignOut?.();
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-[#D93829] text-white text-xs font-bold hover:bg-[#B91C1C]"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </aside>
     </div>

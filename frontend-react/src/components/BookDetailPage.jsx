@@ -4,6 +4,8 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   BookOpen,
   Headphones,
@@ -72,6 +74,15 @@ export default function BookDetailPage({
   const [commentText, setCommentText] = useState('');
   const [actionToast, setActionToast] = useState('');
   const commentBoxRef = useRef(null);
+  const nextChapterRef = useRef(null);
+
+  const scrollNextChapter = (direction) => {
+    if (!nextChapterRef.current) return;
+    nextChapterRef.current.scrollBy({
+      left: direction * 380,
+      behavior: 'smooth',
+    });
+  };
 
   const isFree = !!book?.isFree || book?.buyPrice === 0;
   const buyPrice = book?.buyPrice ?? 249;
@@ -84,7 +95,7 @@ export default function BookDetailPage({
 
   const recommendedBooks = useMemo(() => {
     const pool = [...trendingBooks, ...freeClassicBooks].filter((b) => b.id !== book?.id);
-    return pool.slice(0, 4);
+    return pool.slice(0, 8);
   }, [book?.id]);
 
   const handleToggleHelpful = (id) => {
@@ -633,17 +644,41 @@ export default function BookDetailPage({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onExploreAll}
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-[#4B3AE8] hover:text-[#3929D1] transition-colors"
-          >
-            <span>Explore all books</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scrollNextChapter(-1)}
+                aria-label="Slide recommended books left"
+                className="w-8 h-8 rounded-full border border-[#E4E0EB] bg-white hover:border-[#4B3AE8] text-[#141416] hover:text-[#4B3AE8] flex items-center justify-center transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollNextChapter(1)}
+                aria-label="Slide recommended books right"
+                className="w-8 h-8 rounded-full border border-[#E4E0EB] bg-white hover:border-[#4B3AE8] text-[#141416] hover:text-[#4B3AE8] flex items-center justify-center transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={onExploreAll}
+              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-[#4B3AE8] hover:text-[#3929D1] transition-colors ml-2"
+            >
+              <span>Explore all books</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div
+          ref={nextChapterRef}
+          className="flex gap-3.5 sm:gap-4 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory scroll-smooth"
+        >
           {recommendedBooks.map((item) => (
             <article
               key={item.id}
@@ -651,9 +686,9 @@ export default function BookDetailPage({
                 onSelectBook?.(item);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="group rounded-2xl border border-[#EAE6F0] hover:border-[#CFC7DF] bg-white p-3.5 flex sm:flex-col gap-3.5 cursor-pointer transition-all hover:shadow-[0_10px_24px_rgba(20,20,30,0.06)]"
+              className="group w-[172px] sm:w-[196px] flex-shrink-0 snap-start rounded-2xl border border-[#EAE6F0] hover:border-[#CFC7DF] bg-white p-3 flex flex-col gap-3 cursor-pointer transition-all hover:shadow-[0_10px_24px_rgba(20,20,30,0.06)]"
             >
-              <div className="w-20 sm:w-[136px] sm:mx-auto flex-shrink-0">
+              <div className="w-full">
                 <HomeBookCover
                   bookId={item.id}
                   title={item.title}

@@ -539,6 +539,10 @@ export default function App() {
         onSelectItem={handleSelectAccountItem}
         onSignOut={handleSignOut}
         savedCount={savedItems.length}
+        highlightsCount={highlights.length}
+        onUpgradePremium={() => setIsPremiumPlansOpen(true)}
+        accessibilityState={accessibilityState}
+        onChangeAccessibility={handleChangeAccessibility}
         returnFocusRef={avatarTriggerRef}
       />
 
