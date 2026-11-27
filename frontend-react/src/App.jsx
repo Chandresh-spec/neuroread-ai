@@ -2,7 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import BodySearchBar from './components/BodySearchBar';
 import HeroBanner from './components/HeroBanner';
+import TrendingSection from './components/TrendingSection';
 import PickUpSection from './components/PickUpSection';
+import ReadingFeaturesSection from './components/ReadingFeaturesSection';
+import MostReadSection from './components/MostReadSection';
+import FreeBookshelfSection from './components/FreeBookshelfSection';
+import PremiumSection from './components/PremiumSection';
+import PdfWorkflowSection from './components/PdfWorkflowSection';
 import CuriositySection from './components/CuriositySection';
 import MyFilesSection from './components/MyFilesSection';
 import LibrarySection from './components/LibrarySection';
@@ -20,6 +26,7 @@ import AudioPlayerModal from './components/AudioPlayerModal';
 import PreferencesModal from './components/PreferencesModal';
 import AccountDrawer from './components/AccountDrawer';
 import LoginModal from './components/LoginModal';
+import BookActionModal from './components/BookActionModal';
 import ReaderView from './components/ReaderView';
 import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
 
@@ -79,6 +86,8 @@ export default function App() {
     () => localStorage.getItem('neuroread_auth') === 'true'
   );
   const [selectedAudioBook, setSelectedAudioBook] = useState(null);
+  const [bookActionTarget, setBookActionTarget] = useState(null);
+  const [isPremiumPlansOpen, setIsPremiumPlansOpen] = useState(false);
 
   const handleNavChange = (nextNav) => {
     setIsAccountMenuOpen(false);
@@ -385,75 +394,62 @@ export default function App() {
               ) : (
                 /* Home View */
                 <>
-                  {/* Hero Banner: "A LIBRARY THAT GETS YOU" */}
-                  {/* Inline Search Bar in Body */}
+                  {/* Search Bar */}
                   <BodySearchBar onSelectBook={handleOpenReader} inputRef={bodySearchRef} />
 
-                  <div className={focusMode ? 'focus-dimmed' : ''}>
-                    <HeroBanner
-                      onExplore={() => handleNavChange('library')}
-                      onTryAudio={() => {
-                        setSelectedAudioBook(null);
-                        setIsAudioPlayerOpen(true);
-                      }}
-                    />
-                  </div>
+                  {/* Hero Banner */}
+                  <HeroBanner
+                    onExplore={() => handleNavChange('library')}
+                    onTryAudio={() => {
+                      setSelectedAudioBook(null);
+                      setIsAudioPlayerOpen(true);
+                    }}
+                    onUploadPdf={() => setIsAddFileOpen(true)}
+                    onExplorePremium={() => setIsPremiumPlansOpen(true)}
+                  />
 
-                  {/* Section 1: "Pick up where you left off" */}
-                  <div className={focusMode ? 'focus-active p-2 rounded-3xl bg-white' : ''}>
+                  {/* Trending Now */}
+                  <TrendingSection
+                    onSelectBook={handleOpenReader}
+                    onBookAction={(book, mode) => setBookActionTarget({ book, mode })}
+                    onExploreAll={() => handleNavChange('library')}
+                  />
+
+                  {/* Pick up where you left off (visible for signed-in readers) */}
+                  {isAuthenticated && (
                     <PickUpSection
                       onContinueReading={handleOpenReader}
                       onContinueListening={handleOpenAudioBook}
                       onViewHistory={() => handleNavChange('saved-books')}
                     />
-                  </div>
+                  )}
 
-                  {/* Section 2: "A little curiosity goes a long way" */}
-                  <div id="curiosity-section" className={focusMode ? 'focus-dimmed' : ''}>
-                    <CuriositySection
-                      onSelectBook={handleOpenReader}
-                      onExploreAll={() => handleNavChange('library')}
-                    />
-                  </div>
+                  {/* Reading Features + Live Interactive Reader Preview */}
+                  <ReadingFeaturesSection />
 
-                  {/* Section 3: Pastel Editorial Feature Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 pt-2">
-                    <div className="bg-[#E3DFFA] rounded-2xl p-6 sm:p-7">
-                      <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#3A2AD9] block mb-2">
-                        READ
-                      </span>
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[#141416] mb-1.5">
-                        At your pace
-                      </h3>
-                      <p className="text-xs sm:text-[13px] text-[#4C485C] leading-relaxed">
-                        Adjust spacing, size and focus so every page feels comfortable.
-                      </p>
-                    </div>
+                  {/* Most Read This Week */}
+                  <MostReadSection
+                    onSelectBook={handleOpenReader}
+                    onBookAction={(book, mode) => setBookActionTarget({ book, mode })}
+                    onExploreAll={() => handleNavChange('library')}
+                  />
 
-                    <div className="bg-[#FAD8C4] rounded-2xl p-6 sm:p-7">
-                      <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#9A421C] block mb-2">
-                        LISTEN
-                      </span>
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[#141416] mb-1.5">
-                        When you like
-                      </h3>
-                      <p className="text-xs sm:text-[13px] text-[#5C4438] leading-relaxed">
-                        Switch between text and voice without losing your place.
-                      </p>
-                    </div>
+                  {/* Free Bookshelf */}
+                  <FreeBookshelfSection
+                    onSelectBook={handleOpenReader}
+                    onExploreAll={() => handleNavChange('library')}
+                  />
 
-                    <div className="bg-[#FAF8F5] border border-[#E5DFD3] rounded-2xl p-6 sm:p-7">
-                      <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#3A2AD9] block mb-2">
-                        BELONG
-                      </span>
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[#141416] mb-1.5">
-                        Made for every mind
-                      </h3>
-                      <p className="text-xs sm:text-[13px] text-[#5E5A54] leading-relaxed">
-                        A world of stories, open to everyone.
-                      </p>
-                    </div>
-                  </div>
+                  {/* Premium Storage */}
+                  <PremiumSection
+                    isPlansOpen={isPremiumPlansOpen}
+                    onOpenChange={setIsPremiumPlansOpen}
+                  />
+
+                  {/* PDF Workflow */}
+                  <PdfWorkflowSection
+                    onUploadPdf={() => setIsAddFileOpen(true)}
+                  />
                 </>
               )}
             </main>
@@ -530,6 +526,15 @@ export default function App() {
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onAuthSuccess={handleAuthSuccess}
+      />
+
+      <BookActionModal
+        key={bookActionTarget ? `${bookActionTarget.book.id}-${bookActionTarget.mode}` : 'none'}
+        book={bookActionTarget?.book}
+        initialMode={bookActionTarget?.mode || 'rent'}
+        isOpen={!!bookActionTarget}
+        onClose={() => setBookActionTarget(null)}
+        onStartReading={handleOpenReader}
       />
 
       <span className="hidden" aria-hidden="true"

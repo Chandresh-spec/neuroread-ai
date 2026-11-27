@@ -21,9 +21,9 @@ export default function MobileBottomNav({
   profile,
 }) {
   const tabs = [
-    { id: 'home', label: 'Home', icon: Home },
+    { id: 'home', label: 'Discover', icon: Home },
     { id: 'library', label: 'Library', icon: BookOpen },
-    { id: 'my-files', label: 'Files', icon: FileText },
+    { id: 'my-files', label: 'My PDFs', icon: FileText },
     {
       id: 'profile',
       label: isAuthenticated ? 'Profile' : 'Sign in',

@@ -50,8 +50,8 @@ export default function BodySearchBar({ onSelectBook, inputRef }) {
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <div className="flex items-center gap-3 w-full bg-[#F7F6F3] hover:bg-[#F3F1EC] focus-within:bg-white border border-[#E4E1DA] focus-within:border-[#3A2AD9] rounded-full px-4 py-2.5 sm:py-3 transition-colors">
-        <Search className="w-4 h-4 text-[#6B665F] flex-shrink-0" aria-hidden="true" />
+      <div className="flex items-center gap-3 w-full bg-[#F9F8FA] hover:bg-[#F4F2F7] focus-within:bg-white border border-[#E5E2EC] focus-within:border-[#4B3AE8] rounded-xl px-4 py-2.5 sm:py-3 transition-all shadow-2xs">
+        <Search className="w-4 h-4 text-[#736E7D] flex-shrink-0" aria-hidden="true" />
         <input
           ref={inputRef}
           type="text"
@@ -70,12 +70,12 @@ export default function BodySearchBar({ onSelectBook, inputRef }) {
               handleSelect(results[0]);
             }
           }}
-          placeholder="Search books, authors, or topics..."
-          aria-label="Search books, authors, or topics"
-          className="w-full bg-transparent text-sm text-[#141416] placeholder-[#7B756D] focus:outline-none"
+          placeholder="Search books, authors or topics"
+          aria-label="Search books, authors or topics"
+          className="w-full bg-transparent text-sm text-[#141416] placeholder-[#827D8C] focus:outline-none"
         />
 
-        {query && (
+        {query ? (
           <button
             type="button"
             onClick={() => {
@@ -83,10 +83,14 @@ export default function BodySearchBar({ onSelectBook, inputRef }) {
               inputRef?.current?.focus();
             }}
             aria-label="Clear search"
-            className="p-1 rounded-full text-[#6B665F] hover:text-[#141416] hover:bg-[#E9E5DC] transition-colors flex-shrink-0"
+            className="p-1 rounded-full text-[#6B665F] hover:text-[#141416] hover:bg-[#EAE6F0] transition-colors flex-shrink-0"
           >
             <X className="w-3.5 h-3.5" />
           </button>
+        ) : (
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-medium text-[#827D8C] bg-white border border-[#E5E2EC] rounded-md flex-shrink-0 select-none">
+            Ctrl K
+          </kbd>
         )}
       </div>
 

@@ -7,6 +7,9 @@ const COVER_IMAGE_IDS = new Set([
   'psychology-of-money',
   'creative-act',
   'four-thousand-weeks',
+  'midnight-library',
+  'pride-and-prejudice',
+  'alice-in-wonderland',
 ]);
 
 export default function BookCover({

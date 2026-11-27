@@ -92,6 +92,15 @@ input[type="range"].reader-slider::-webkit-slider-thumb:hover {
   background: #B8B0A2;
 }
 
+/* Hide scrollbars cleanly for horizontal shelves */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* Inset modal scrollbar that stays cleanly inside rounded modal containers */
 .modal-scroll {
   scrollbar-width: thin;

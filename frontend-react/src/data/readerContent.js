@@ -104,6 +104,51 @@ export const readerDocuments = {
     structured:
       '• Core Idea: Models learn patterns from data instead of explicit instructions.\n• Three Types: Supervised (labeled), Unsupervised (unlabeled), Reinforcement (rewards).\n• Best Practice: Prevent overfitting with validation data so models generalize well.',
   },
+  'midnight-library': {
+    title: 'The Midnight Library',
+    author: 'Matt Haig',
+    readTime: '5 min read',
+    progress: 12,
+    paragraphs: [
+      'Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived.',
+      'To see how things would be if you had made other choices. Would you have done anything different, if you had the chance to undo your regrets?',
+      'A quiet stillness filled the aisles as Nora reached for the first green binding on the shelf beside her.',
+    ],
+    simplified:
+      'Imagine a magical library between life and death where each book lets you step into a different version of your life based on another choice you could have made.',
+    structured:
+      '• Setting: An endless quiet library existing between life and death.\n• Core Premise: Each book shows an alternate life path.\n• Key Theme: Understanding regret and finding meaning in the present.',
+  },
+  'pride-and-prejudice': {
+    title: 'Pride and Prejudice',
+    author: 'Jane Austen',
+    readTime: '6 min read',
+    progress: 18,
+    paragraphs: [
+      'It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.',
+      'However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of someone or other of their daughters.',
+      '“My dear Mr. Bennet,” said his lady to him one day, “have you heard that Netherfield Park is let at last?”',
+    ],
+    simplified:
+      'Everyone in town assumes a wealthy young newcomer must be looking to marry, and Mrs. Bennet is eager to introduce him to her daughters right away.',
+    structured:
+      '• Setting: Longbourn in rural England.\n• Opening Conflict: A wealthy bachelor, Mr. Bingley, rents nearby Netherfield Park.\n• Key Characters: Mr. and Mrs. Bennet and their five daughters.',
+  },
+  'alice-in-wonderland': {
+    title: 'Alice in Wonderland',
+    author: 'Lewis Carroll',
+    readTime: '4 min read',
+    progress: 24,
+    paragraphs: [
+      'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.',
+      'So she was considering in her own mind whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.',
+      'In another moment down went Alice after it, never once considering how in the world she was to get out again.',
+    ],
+    simplified:
+      'Alice feels bored sitting beside her sister because her book has no pictures. Suddenly, a White Rabbit rushes past checking a pocket watch, and Alice follows him straight down a rabbit-hole.',
+    structured:
+      '• Chapter 01: Down the rabbit-hole.\n• Inciting Moment: A White Rabbit runs past talking to himself.\n• What Happens Next: Curious Alice follows him underground into Wonderland.',
+  },
 };
 
 export const defaultSampleDocument = {
