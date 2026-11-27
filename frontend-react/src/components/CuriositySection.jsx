@@ -1,56 +1,54 @@
 import React, { useState } from 'react';
-import { Star, Bookmark, ArrowRight } from 'lucide-react';
-import BookCover from './BookCover';
-import { bookCategories, curatedBooks } from '../data/booksData';
+import { ArrowRight } from 'lucide-react';
+import HomeBookCover from './HomeBookCover';
+import { homeCategories, homeCatalogueBooks } from '../data/homeBooksData';
 
 export default function CuriositySection({ onSelectBook, onExploreAll }) {
   const [activeCategory, setActiveCategory] = useState('for-you');
-  const [bookmarks, setBookmarks] = useState({
-    'psychology-of-money': true,
-  });
 
-  const toggleBookmark = (e, bookId) => {
-    e.stopPropagation();
-    setBookmarks((prev) => ({
-      ...prev,
-      [bookId]: !prev[bookId],
-    }));
-  };
-
-  const filteredBooks =
-    activeCategory === 'for-you'
-      ? curatedBooks
-      : curatedBooks.filter((b) => b.categoryId === activeCategory);
+  const filteredBooks = homeCatalogueBooks
+    .filter((book) => book.categories.includes(activeCategory))
+    .slice(0, 4);
 
   return (
-    <section>
-      {/* Header with Editorial Serif Title and Indigo Link */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-editorial text-2xl sm:text-3xl font-bold text-[#141416] tracking-tight">
-          A little curiosity goes a long way
-        </h2>
+    <section aria-labelledby="home-catalogue-heading">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
+        <div>
+          <h2
+            id="home-catalogue-heading"
+            className="text-2xl sm:text-[28px] font-bold text-[#141416] tracking-tight leading-tight"
+          >
+            Find your next favourite
+          </h2>
+          <p className="text-xs sm:text-sm text-[#5A5864] mt-1">
+            Trending now. Ready for your reading style.
+          </p>
+        </div>
+
         <button
+          type="button"
           onClick={onExploreAll}
-          className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#3A2AD9] hover:underline transition-colors"
+          className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#3B2FD6] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] rounded"
         >
-          <span>Explore all books</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <span>View all books</span>
+          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 sm:mb-5 scrollbar-none">
-        {bookCategories.map((cat) => {
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        {homeCategories.map((cat) => {
           const isActive = activeCategory === cat.id;
           return (
             <button
               key={cat.id}
+              type="button"
               onClick={() => setActiveCategory(cat.id)}
-              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
-                isActive
-                  ? 'bg-[#141416] text-white border-[#141416] shadow-2xs'
-                  : 'bg-white text-[#5E5A54] hover:text-[#141416] border-[#DED8CB] hover:border-[#B8B0A2]'
-              }`}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] ${isActive
+                ? 'bg-[#141416] text-white border-[#141416]'
+                : 'bg-white text-[#4A4752] hover:text-[#141416] border-[#E0DCD3] hover:border-[#BEB8AC]'
+                }`}
             >
               {cat.label}
             </button>
@@ -58,58 +56,71 @@ export default function CuriositySection({ onSelectBook, onExploreAll }) {
         })}
       </div>
 
-      {/* 2-Column on Mobile, 3 on Tablet, 4 on Desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-        {filteredBooks.map((book) => {
-          const isBookmarked = !!bookmarks[book.id];
-
-          return (
-            <div
-              key={book.id}
-              onClick={() => onSelectBook(book)}
-              className="flex flex-col justify-between group cursor-pointer"
+      {/* Responsive Grid: 2 Columns on Mobile, 4 Columns on Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+        {filteredBooks.map((book) => (
+          <article
+            key={book.id}
+            className="group bg-white border border-[#E8E4DC] hover:border-[#C8C2B6] rounded-2xl p-2.5 sm:p-3.5 flex flex-col justify-between transition-colors shadow-2xs"
+          >
+            <button
+              type="button"
+              onClick={() => onSelectBook?.(book)}
+              className="text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] rounded-xl"
             >
-              {/* Cover Container */}
-              <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-2.5 shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-0.5">
-                <BookCover book={book} width="w-full" height="h-full" />
-
-                <button
-                  onClick={(e) => toggleBookmark(e, book.id)}
-                  aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark book'}
-                  className={`absolute top-2.5 right-2.5 p-1.5 rounded-lg backdrop-blur-md transition-all ${
-                    isBookmarked
-                      ? 'bg-white/90 text-[#3A2AD9] shadow-sm'
-                      : 'bg-black/25 text-white/90 hover:bg-black/45 opacity-0 group-hover:opacity-100'
-                  }`}
-                >
-                  <Bookmark
-                    className={`w-3.5 h-3.5 ${
-                      isBookmarked ? 'fill-[#3A2AD9]' : ''
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Clean Editorial Info Below Cover */}
-              <div>
-                <p className="text-[9.5px] font-bold tracking-[0.08em] text-[#7B756D] uppercase truncate">
-                  {book.category}
-                </p>
-
-                <h3 className="text-sm font-bold text-[#141416] tracking-tight leading-snug group-hover:text-[#3A2AD9] transition-colors truncate mt-0.5">
-                  {book.title}
-                </h3>
-
-                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-[#6B665F] mt-0.5">
-                  <span>{book.rating}</span>
-                  <Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />
-                  <span>·</span>
-                  <span>{book.duration}</span>
+              {/* Soft Cover Stage */}
+              <div className="relative bg-[#F5F3EE] rounded-xl p-3 sm:p-4 pt-8 sm:pt-9 mb-3 flex items-center justify-center">
+                <span className="absolute top-2.5 left-2.5 bg-white/95 border border-[#E6E2D9] text-[#45424C] text-[9px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded">
+                  {book.badge}
+                </span>
+                <div className="w-24 sm:w-28 h-32 sm:h-40 rounded-lg overflow-hidden shadow-md group-hover:scale-[1.02] transition-transform">
+                  <HomeBookCover book={book} />
                 </div>
               </div>
+
+              <h3 className="text-sm sm:text-[15px] font-bold text-[#141416] group-hover:text-[#3B2FD6] transition-colors leading-snug line-clamp-2">
+                {book.title}
+              </h3>
+              <p className="text-xs text-[#5A5864] mt-0.5 truncate">
+                {book.author}
+              </p>
+            </button>
+
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-3 mt-3 border-t border-[#F0EDE6] text-[11px] sm:text-xs">
+              <button
+                type="button"
+                onClick={() => onSelectBook?.(book)}
+                className="font-bold text-[#141416] hover:text-[#3B2FD6] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] rounded"
+              >
+                Buy {book.buyPrice}
+              </button>
+              <button
+                type="button"
+                onClick={() => onSelectBook?.(book)}
+                className="inline-flex items-center gap-1 font-semibold text-[#3B2FD6] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] rounded"
+              >
+                <span>Rent {book.rentPrice}</span>
+                <ArrowRight className="w-3 h-3" aria-hidden="true" />
+              </button>
             </div>
-          );
-        })}
+          </article>
+        ))}
+      </div>
+
+      {/* Mobile View All Link & Pricing Note */}
+      <div className="mt-4 flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={onExploreAll}
+          className="sm:hidden inline-flex items-center gap-1.5 text-sm font-semibold text-[#3B2FD6] hover:underline self-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B2FD6] rounded"
+        >
+          <span>View all books</span>
+          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
+
+        <p className="text-xs text-[#6B6874]">
+          Rentals last 30 days. Prices shown in INR.
+        </p>
       </div>
     </section>
   );

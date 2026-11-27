@@ -2,8 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import BodySearchBar from './components/BodySearchBar';
 import HeroBanner from './components/HeroBanner';
-import PickUpSection from './components/PickUpSection';
 import CuriositySection from './components/CuriositySection';
+import ReadingFeaturesSection from './components/ReadingFeaturesSection';
+import MostReadSection from './components/MostReadSection';
+import FreeBookshelfSection from './components/FreeBookshelfSection';
+import PremiumSection from './components/PremiumSection';
+import PdfWorkflowSection from './components/PdfWorkflowSection';
 import MyFilesSection from './components/MyFilesSection';
 import LibrarySection from './components/LibrarySection';
 import SavedBooksSection from './components/SavedBooksSection';
@@ -384,14 +388,15 @@ export default function App() {
                 />
               ) : (
                 /* Home View */
-                <>
-                  {/* Hero Banner: "A LIBRARY THAT GETS YOU" */}
+                <div className="space-y-12 sm:space-y-16">
                   {/* Inline Search Bar in Body */}
                   <BodySearchBar onSelectBook={handleOpenReader} inputRef={bodySearchRef} />
 
                   <div className={focusMode ? 'focus-dimmed' : ''}>
                     <HeroBanner
                       onExplore={() => handleNavChange('library')}
+                      onUploadPdf={() => setIsAddFileOpen(true)}
+                      onSelectBook={handleOpenReader}
                       onTryAudio={() => {
                         setSelectedAudioBook(null);
                         setIsAudioPlayerOpen(true);
@@ -399,70 +404,72 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Section 1: "Pick up where you left off" */}
-                  <div className={focusMode ? 'focus-active p-2 rounded-3xl bg-white' : ''}>
-                    <PickUpSection
-                      onContinueReading={handleOpenReader}
-                      onContinueListening={handleOpenAudioBook}
-                      onViewHistory={() => handleNavChange('saved-books')}
-                    />
-                  </div>
-
-                  {/* Section 2: "A little curiosity goes a long way" */}
-                  <div id="curiosity-section" className={focusMode ? 'focus-dimmed' : ''}>
+                  {/* Section 1: "Find your next favourite" */}
+                  <div
+                    id="curiosity-section"
+                    className={`border-t border-[#ECE9E2] pt-10 sm:pt-12 ${
+                      focusMode ? 'focus-dimmed' : ''
+                    }`}
+                  >
                     <CuriositySection
                       onSelectBook={handleOpenReader}
                       onExploreAll={() => handleNavChange('library')}
                     />
                   </div>
 
-                  {/* Section 3: Pastel Editorial Feature Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 pt-2">
-                    <div className="bg-[#E3DFFA] rounded-2xl p-6 sm:p-7">
-                      <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#3A2AD9] block mb-2">
-                        READ
-                      </span>
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[#141416] mb-1.5">
-                        At your pace
-                      </h3>
-                      <p className="text-xs sm:text-[13px] text-[#4C485C] leading-relaxed">
-                        Adjust spacing, size and focus so every page feels comfortable.
-                      </p>
-                    </div>
-
-                    <div className="bg-[#FAD8C4] rounded-2xl p-6 sm:p-7">
-                      <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#9A421C] block mb-2">
-                        LISTEN
-                      </span>
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[#141416] mb-1.5">
-                        When you like
-                      </h3>
-                      <p className="text-xs sm:text-[13px] text-[#5C4438] leading-relaxed">
-                        Switch between text and voice without losing your place.
-                      </p>
-                    </div>
-
-                    <div className="bg-[#FAF8F5] border border-[#E5DFD3] rounded-2xl p-6 sm:p-7">
-                      <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#3A2AD9] block mb-2">
-                        BELONG
-                      </span>
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[#141416] mb-1.5">
-                        Made for every mind
-                      </h3>
-                      <p className="text-xs sm:text-[13px] text-[#5E5A54] leading-relaxed">
-                        A world of stories, open to everyone.
-                      </p>
-                    </div>
+                  {/* Section 2: "Made for the way you read" */}
+                  <div className="border-t border-[#ECE9E2] pt-10 sm:pt-12">
+                    <ReadingFeaturesSection
+                      onOpenPreferences={() => setIsPreferencesOpen(true)}
+                    />
                   </div>
-                </>
+
+                  {/* Section 3: "Most read this week" */}
+                  <div
+                    className={`border-t border-[#ECE9E2] pt-10 sm:pt-12 ${
+                      focusMode ? 'focus-dimmed' : ''
+                    }`}
+                  >
+                    <MostReadSection
+                      onSelectBook={handleOpenReader}
+                      onExplorePopular={() => handleNavChange('library')}
+                    />
+                  </div>
+
+                  {/* Section 4: "The Free Bookshelf" */}
+                  <div className={focusMode ? 'focus-dimmed' : ''}>
+                    <FreeBookshelfSection
+                      onSelectBook={handleOpenReader}
+                      onBrowseFree={() => handleNavChange('library')}
+                    />
+                  </div>
+
+                  {/* Section 5: "NeuroRead Premium" */}
+                  <div className={focusMode ? 'focus-dimmed' : ''}>
+                    <PremiumSection
+                      onSelectFile={handleOpenReader}
+                      onOpenMyFiles={() => handleNavChange('my-files')}
+                    />
+                  </div>
+
+                  {/* Section 6: "From PDF to your kind of reading." */}
+                  <div
+                    className={`border-t border-[#ECE9E2] pt-10 sm:pt-12 ${
+                      focusMode ? 'focus-dimmed' : ''
+                    }`}
+                  >
+                    <PdfWorkflowSection onUploadPdf={() => setIsAddFileOpen(true)} />
+                  </div>
+                </div>
               )}
             </main>
           </div>
 
-          {/* Full-Bleed Dark Editorial Footer */}
+          {/* Footer */}
           <Footer
             onNavigate={handleNavChange}
             onOpenPreferences={() => setIsPreferencesOpen(true)}
+            onUploadPdf={() => setIsAddFileOpen(true)}
           />
 
           {/* Mobile Bottom Navigation Bar (< 768px) */}
