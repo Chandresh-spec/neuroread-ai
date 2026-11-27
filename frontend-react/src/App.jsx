@@ -15,6 +15,7 @@ import LibrarySection from './components/LibrarySection';
 import SavedBooksSection from './components/SavedBooksSection';
 import HighlightsSection from './components/HighlightsSection';
 import EditProfilePage from './components/EditProfilePage';
+import NotificationsPage from './components/NotificationsPage';
 import SettingsPage from './components/SettingsPage';
 import AccessibilityPage from './components/AccessibilityPage';
 import HelpPage from './components/HelpPage';
@@ -31,6 +32,7 @@ import BookDetailPage from './components/BookDetailPage';
 import ReaderView from './components/ReaderView';
 import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
 import { initialUserFiles } from './data/filesData';
+import { INITIAL_NOTIFICATIONS } from './data/notificationsData';
 
 const INITIAL_PROFILE = {
   displayName: 'Alex Morgan',
@@ -41,6 +43,7 @@ const INITIAL_PROFILE = {
 
 const ACCOUNT_SUBPAGES = new Set([
   'edit-profile',
+  'notifications',
   'highlights',
   'saved-books',
   'accessibility',
@@ -60,6 +63,7 @@ export default function App() {
   const [savedItems, setSavedItems] = useState(INITIAL_SAVED_ITEMS);
   const [highlights, setHighlights] = useState(INITIAL_HIGHLIGHTS);
   const [userFiles, setUserFiles] = useState(initialUserFiles);
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
 
   // Accessibility & Preferences State
   const [fontMode, setFontMode] = useState('inter');
@@ -75,6 +79,7 @@ export default function App() {
   const [accountNotice, setAccountNotice] = useState('');
   const [openedFromAccountMenu, setOpenedFromAccountMenu] = useState(false);
   const navBeforeAccountRef = useRef('home');
+  const navBeforeNotificationsRef = useRef('home');
   const skipNextAccountPopRef = useRef(false);
   const avatarTriggerRef = useRef(null);
   const bodySearchRef = useRef(null);
@@ -98,6 +103,16 @@ export default function App() {
     setOpenedFromAccountMenu(false);
     setDetailBook(null);
     setActiveNav(nextNav);
+  };
+
+  const handleOpenNotifications = () => {
+    if (activeNav !== 'notifications') {
+      navBeforeNotificationsRef.current = activeNav;
+    }
+    setIsAccountMenuOpen(false);
+    setOpenedFromAccountMenu(false);
+    setDetailBook(null);
+    setActiveNav('notifications');
   };
 
   const handleSelectAccountItem = (itemId) => {
@@ -324,6 +339,9 @@ export default function App() {
               setSelectedAudioBook(null);
               setIsAudioPlayerOpen(true);
             }}
+            onOpenNotifications={handleOpenNotifications}
+            unreadNotificationsCount={notifications.filter((n) => n.unread).length}
+            isNotificationsActive={activeNav === 'notifications' && !detailBook}
             profile={profile}
             avatarButtonRef={avatarTriggerRef}
           />
@@ -395,6 +413,12 @@ export default function App() {
                   onUploadAvatar={handleUploadAvatar}
                   onRemoveAvatar={handleRemoveAvatar}
                   onBack={() => handleBackFromAccountPage(false)}
+                />
+              ) : activeNav === 'notifications' ? (
+                <NotificationsPage
+                  notifications={notifications}
+                  onUpdateNotifications={setNotifications}
+                  onBack={() => handleNavChange(navBeforeNotificationsRef.current || 'home')}
                 />
               ) : activeNav === 'accessibility' ? (
                 <AccessibilityPage
