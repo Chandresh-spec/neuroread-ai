@@ -120,7 +120,7 @@ export default function App() {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        if (readerBook) { setIsSearchOpen((prev) => !prev); } else { setActiveNav('home'); requestAnimationFrame(() => bodySearchRef.current?.focus()); }
+        setIsSearchOpen((prev) => !prev);
         return;
       }
       if (
@@ -306,7 +306,7 @@ export default function App() {
           <Navbar
             activeNav={activeNav}
             setActiveNav={handleNavChange}
-
+            onOpenSearch={() => setIsSearchOpen(true)}
             onOpenProfile={() => setIsAccountMenuOpen(true)}
             onOpenLogin={() => setIsLoginOpen(true)}
             isAuthenticated={isAuthenticated}
@@ -394,9 +394,6 @@ export default function App() {
               ) : (
                 /* Home View */
                 <>
-                  {/* Search Bar */}
-                  <BodySearchBar onSelectBook={handleOpenReader} inputRef={bodySearchRef} />
-
                   {/* Hero Banner */}
                   <HeroBanner
                     onExplore={() => handleNavChange('library')}
