@@ -30,27 +30,27 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#ECE8F4] shadow-[0_4px_20px_rgba(20,16,44,0.04)]">
-      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-12 h-14 sm:h-[60px] flex items-center justify-between gap-2 sm:gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 h-[64px] sm:h-[76px] lg:h-[82px] flex items-center justify-between gap-4 sm:gap-6">
         {/* Left: Brand Logo + Divider + Nav Pills */}
-        <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
+        <div className="flex items-center gap-3 lg:gap-6 flex-shrink-0">
           <button
             type="button"
             onClick={() => setActiveNav?.('home')}
-            className="flex items-center gap-2.5 group focus:outline-none flex-shrink-0 pl-1"
+            className="flex items-center gap-3 group focus:outline-none flex-shrink-0"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#624DF5] to-[#4B3AE8] flex items-center justify-center text-white shadow-sm group-hover:brightness-105 transition-all select-none">
-              <BookOpen className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-[#624DF5] to-[#4B3AE8] flex items-center justify-center text-white shadow-sm group-hover:brightness-105 transition-all select-none">
+              <BookOpen className="w-5 h-5 sm:w-[22px] sm:h-[22px] lg:w-6 lg:h-6" />
             </div>
-            <span className="font-extrabold text-base sm:text-[18px] tracking-tight select-none">
+            <span className="font-extrabold text-xl sm:text-[22px] lg:text-2xl tracking-tight select-none">
               <span className="text-[#141416]">Neuro</span>
               <span className="text-[#4B3AE8]">Reader</span>
             </span>
           </button>
 
-          <span className="hidden md:block w-px h-5 bg-[#ECE8F4] mx-0.5" aria-hidden="true" />
+          <span className="hidden md:block w-px h-7 bg-[#ECE8F4] mx-1" aria-hidden="true" />
 
           {/* Tablet & Desktop Nav Pills (md+) */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-1.5">
+          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
@@ -59,13 +59,13 @@ export default function Navbar({
                   key={item.id}
                   type="button"
                   onClick={() => setActiveNav?.(item.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-1.5 rounded-full text-xs lg:text-[13px] whitespace-nowrap transition-all focus:outline-none ${
+                  className={`inline-flex items-center gap-2 px-5 lg:px-6 py-2.5 lg:py-3 rounded-full text-[15px] lg:text-base whitespace-nowrap transition-all focus:outline-none ${
                     isActive
                       ? 'bg-[#EFEBFD] text-[#4B3AE8] font-bold'
                       : 'text-[#1E1D24] hover:bg-[#F6F5FA] font-medium'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#4B3AE8]' : 'text-[#5E5A68]'}`} />
+                  <Icon className={`w-[18px] h-[18px] lg:w-5 lg:h-5 ${isActive ? 'text-[#4B3AE8]' : 'text-[#5E5A68]'}`} />
                   <span>{item.label}</span>
                 </button>
               );
@@ -74,24 +74,24 @@ export default function Navbar({
         </div>
 
         {/* Right: Search Pill + Divider + Notification Bell + Profile/Sign In */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end min-w-0">
+        <div className="flex items-center gap-3 sm:gap-4 flex-1 justify-end min-w-0">
           {/* Desktop/Tablet Inline Search Pill (md+) */}
           <button
             type="button"
             onClick={onOpenSearch}
-            className="hidden md:flex items-center justify-between gap-2 w-full max-w-[200px] lg:max-w-xs xl:max-w-sm min-w-0 overflow-hidden bg-[#F8F7FB] hover:bg-[#F2F0F8] border border-[#E6E2EE] hover:border-[#CFC7DF] rounded-full px-3.5 py-1.5 text-left transition-all group"
+            className="hidden md:flex items-center justify-between gap-3 w-full max-w-[240px] lg:max-w-sm xl:max-w-md min-w-0 overflow-hidden bg-[#F8F7FB] hover:bg-[#F2F0F8] border border-[#E6E2EE] hover:border-[#CFC7DF] rounded-full px-5 py-2.5 lg:py-3 text-left transition-all group"
           >
-            <span className="flex items-center gap-2 min-w-0 flex-1">
-              <Search className="w-3.5 h-3.5 text-[#736E7D] group-hover:text-[#4B3AE8] flex-shrink-0 transition-colors" />
-              <span className="text-xs text-[#7D7888] truncate">
+            <span className="flex items-center gap-2.5 min-w-0 flex-1">
+              <Search className="w-[18px] h-[18px] lg:w-5 lg:h-5 text-[#736E7D] group-hover:text-[#4B3AE8] flex-shrink-0 transition-colors" />
+              <span className="text-[15px] lg:text-base text-[#7D7888] truncate">
                 Search books, authors or topics...
               </span>
             </span>
             <span className="hidden xl:inline-flex items-center gap-1 flex-shrink-0">
-              <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-[#7D7888] bg-white border border-[#E5E2EC] rounded">
+              <kbd className="px-2 py-0.5 text-xs font-medium text-[#7D7888] bg-white border border-[#E5E2EC] rounded">
                 Ctrl
               </kbd>
-              <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-[#7D7888] bg-white border border-[#E5E2EC] rounded">
+              <kbd className="px-2 py-0.5 text-xs font-medium text-[#7D7888] bg-white border border-[#E5E2EC] rounded">
                 K
               </kbd>
             </span>
@@ -102,12 +102,12 @@ export default function Navbar({
             type="button"
             onClick={onOpenSearch}
             aria-label="Search books, authors or topics"
-            className="flex md:hidden w-9 h-9 rounded-full items-center justify-center text-[#141416] hover:bg-[#F4F2F8] transition-colors"
+            className="flex md:hidden w-11 h-11 rounded-full items-center justify-center text-[#141416] hover:bg-[#F4F2F8] transition-colors"
           >
-            <Search className="w-4.5 h-4.5" />
+            <Search className="w-[22px] h-[22px]" />
           </button>
 
-          <span className="hidden md:block w-px h-5 bg-[#ECE8F4]" aria-hidden="true" />
+          <span className="hidden md:block w-px h-7 bg-[#ECE8F4]" aria-hidden="true" />
 
           {/* Notification Bell */}
           <div className="relative">
@@ -118,18 +118,18 @@ export default function Navbar({
                 setHasUnread(false);
               }}
               aria-label="Notifications"
-              className="relative w-9 h-9 rounded-full flex items-center justify-center text-[#1E1D24] hover:bg-[#F4F2F8] transition-colors"
+              className="relative w-11 h-11 rounded-full flex items-center justify-center text-[#1E1D24] hover:bg-[#F4F2F8] transition-colors"
             >
-              <Bell className="w-4 h-4" />
+              <Bell className="w-[22px] h-[22px]" />
               {hasUnread && (
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#EF4444] ring-2 ring-white" />
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-2 ring-white" />
               )}
             </button>
 
             {isBellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-[#E6E2EE] rounded-2xl shadow-xl p-3.5 z-50 text-left">
-                <p className="text-xs font-bold text-[#141416] mb-1">Notifications</p>
-                <p className="text-xs text-[#686472] leading-relaxed">
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-[#E6E2EE] rounded-2xl shadow-xl p-5 z-50 text-left">
+                <p className="text-base font-bold text-[#141416] mb-2">Notifications</p>
+                <p className="text-sm text-[#686472] leading-relaxed">
                   Welcome to NeuroReader! Your reading preferences and uploaded PDFs are synced.
                 </p>
               </div>
@@ -143,22 +143,22 @@ export default function Navbar({
               onClick={onOpenProfile}
               aria-label="Open account menu"
               title="Account menu"
-              className="hidden md:flex items-center gap-1.5 pl-0.5 pr-1.5 py-0.5 rounded-full hover:bg-[#F5F3F9] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8]"
+              className="hidden md:flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-[#F5F3F9] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8]"
             >
               <UserAvatar
                 name={profile?.displayName || 'Alex Morgan'}
                 src={profile?.avatarUrl}
-                sizeClass="w-8 h-8"
-                textClass="text-xs"
+                sizeClass="w-10 h-10"
+                textClass="text-sm"
                 ringClass="ring-2 ring-[#E4DDFB]"
               />
-              <ChevronDown className="w-3.5 h-3.5 text-[#686472]" />
+              <ChevronDown className="w-4 h-4 text-[#686472]" />
             </button>
           ) : (
             <button
               type="button"
               onClick={onOpenLogin}
-              className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#4B3AE8] hover:bg-[#3E2ED6] text-white text-xs font-semibold transition-all shadow-xs active:scale-95 whitespace-nowrap"
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#4B3AE8] hover:bg-[#3E2ED6] text-white text-[15px] font-semibold transition-all shadow-xs active:scale-95 whitespace-nowrap"
             >
               Sign in
             </button>

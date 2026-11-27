@@ -245,18 +245,18 @@ export default function HeroBanner({
             type="button"
             onClick={goPrev}
             aria-label="Previous slide"
-            className="hidden sm:flex absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/35 hover:bg-black/60 text-white items-center justify-center backdrop-blur-xs transition-all"
+            className="flex absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#1A1A2E]/80 sm:bg-black/35 hover:bg-black/60 text-white items-center justify-center backdrop-blur-sm shadow-lg transition-all active:scale-90"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
           </button>
 
           <button
             type="button"
             onClick={goNext}
             aria-label="Next slide"
-            className="hidden sm:flex absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/35 hover:bg-black/60 text-white items-center justify-center backdrop-blur-xs transition-all"
+            className="flex absolute right-1.5 sm:right-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#1A1A2E]/80 sm:bg-black/35 hover:bg-black/60 text-white items-center justify-center backdrop-blur-sm shadow-lg transition-all active:scale-90"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
           </button>
 
           {/* Bottom Indicator Dots */}
