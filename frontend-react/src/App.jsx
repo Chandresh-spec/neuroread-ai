@@ -27,6 +27,7 @@ import PreferencesModal from './components/PreferencesModal';
 import AccountDrawer from './components/AccountDrawer';
 import LoginModal from './components/LoginModal';
 import BookActionModal from './components/BookActionModal';
+import BookDetailPage from './components/BookDetailPage';
 import ReaderView from './components/ReaderView';
 import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
 
@@ -67,6 +68,7 @@ export default function App() {
 
   // Navigation State
   const [activeNav, setActiveNav] = useState('home');
+  const [detailBook, setDetailBook] = useState(null);
   const [readerBook, setReaderBook] = useState(null);
   const [accountNotice, setAccountNotice] = useState('');
   const [openedFromAccountMenu, setOpenedFromAccountMenu] = useState(false);
@@ -92,6 +94,7 @@ export default function App() {
   const handleNavChange = (nextNav) => {
     setIsAccountMenuOpen(false);
     setOpenedFromAccountMenu(false);
+    setDetailBook(null);
     setActiveNav(nextNav);
   };
 
@@ -199,6 +202,11 @@ export default function App() {
 
   const handleOpenReader = (book) => {
     setReaderBook(book);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenBookDetail = (book) => {
+    setDetailBook(book);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -333,7 +341,22 @@ export default function App() {
           {/* Main Centered Container */}
           <div className="flex-1 flex w-full">
             <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-10 xl:px-12 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-6">
-              {activeNav === 'library' ? (
+              {detailBook ? (
+                <BookDetailPage
+                  key={detailBook.id}
+                  book={detailBook}
+                  onBack={() => setDetailBook(null)}
+                  onStartReading={handleOpenReader}
+                  onSelectBook={handleOpenBookDetail}
+                  onOpenReaderSettings={() => setIsPreferencesOpen(true)}
+                  onOpenAudio={handleOpenAudioBook}
+                  onExploreAll={() => {
+                    setDetailBook(null);
+                    handleNavChange('library');
+                  }}
+                  onBookAction={(book, mode) => setBookActionTarget({ book, mode })}
+                />
+              ) : activeNav === 'library' ? (
                 <LibrarySection onOpenReader={handleOpenReader} />
               ) : activeNav === 'my-files' ? (
                 <MyFilesSection
@@ -407,7 +430,7 @@ export default function App() {
 
                   {/* Trending Now */}
                   <TrendingSection
-                    onSelectBook={handleOpenReader}
+                    onSelectBook={handleOpenBookDetail}
                     onBookAction={(book, mode) => setBookActionTarget({ book, mode })}
                     onExploreAll={() => handleNavChange('library')}
                   />
@@ -426,14 +449,14 @@ export default function App() {
 
                   {/* Most Read This Week */}
                   <MostReadSection
-                    onSelectBook={handleOpenReader}
+                    onSelectBook={handleOpenBookDetail}
                     onBookAction={(book, mode) => setBookActionTarget({ book, mode })}
                     onExploreAll={() => handleNavChange('library')}
                   />
 
                   {/* Free Bookshelf */}
                   <FreeBookshelfSection
-                    onSelectBook={handleOpenReader}
+                    onSelectBook={handleOpenBookDetail}
                     onExploreAll={() => handleNavChange('library')}
                   />
 
@@ -475,7 +498,7 @@ export default function App() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onSelectBook={handleOpenReader}
+        onSelectBook={handleOpenBookDetail}
       />
 
       <AddFileModal
