@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Search,
   Home,
@@ -18,9 +18,11 @@ export default function Navbar({
   isAuthenticated = false,
   profile,
   avatarButtonRef,
+  onOpenNotifications,
+  unreadNotificationsCount = 0,
+  isNotificationsActive = false,
 }) {
-  const [hasUnread, setHasUnread] = useState(true);
-  const [isBellOpen, setIsBellOpen] = useState(false);
+  const hasUnread = unreadNotificationsCount > 0;
 
   const navItems = [
     { id: 'home', label: 'Discover', icon: Home },
@@ -30,7 +32,7 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#ECE8F4] shadow-[0_4px_20px_rgba(20,16,44,0.04)]">
-      <div className="w-full px-5 sm:px-6 lg:px-10 xl:px-14 h-[68px] sm:h-[72px] lg:h-[76px] flex items-center justify-between gap-3 sm:gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-14 h-14 sm:h-16 lg:h-[68px] flex items-center justify-between gap-3 sm:gap-4">
         {/* Left: Brand Logo + Divider + Nav Pills */}
         <div className="flex items-center gap-2.5 lg:gap-4 flex-shrink-0">
           <button
@@ -38,10 +40,10 @@ export default function Navbar({
             onClick={() => setActiveNav?.('home')}
             className="flex items-center gap-2.5 group focus:outline-none flex-shrink-0"
           >
-            <div className="w-10 h-10 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl bg-gradient-to-br from-[#624DF5] to-[#4B3AE8] flex items-center justify-center text-white shadow-sm group-hover:brightness-105 transition-all select-none">
-              <BookOpen className="w-5 h-5 lg:w-[22px] lg:h-[22px]" />
+            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-[#624DF5] to-[#4B3AE8] flex items-center justify-center text-white shadow-sm group-hover:brightness-105 transition-all select-none">
+              <BookOpen className="w-[18px] h-[18px] lg:w-5 lg:h-5" />
             </div>
-            <span className="font-extrabold text-[20px] sm:text-[20px] lg:text-[21px] tracking-tight select-none">
+            <span className="font-extrabold text-lg sm:text-[19px] lg:text-[20px] tracking-tight select-none">
               <span className="text-[#141416]">Neuro</span>
               <span className="text-[#4B3AE8]">Reader</span>
             </span>
@@ -59,11 +61,10 @@ export default function Navbar({
                   key={item.id}
                   type="button"
                   onClick={() => setActiveNav?.(item.id)}
-                  className={`inline-flex items-center gap-1.5 lg:gap-2 px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-full text-[13.5px] lg:text-sm whitespace-nowrap transition-all focus:outline-none ${
-                    isActive
-                      ? 'bg-[#EFEBFD] text-[#4B3AE8] font-bold'
-                      : 'text-[#1E1D24] hover:bg-[#F6F5FA] font-medium'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 lg:gap-2 px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-full text-[13.5px] lg:text-sm whitespace-nowrap transition-all focus:outline-none ${isActive
+                    ? 'bg-[#EFEBFD] text-[#4B3AE8] font-bold'
+                    : 'text-[#1E1D24] hover:bg-[#F6F5FA] font-medium'
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-[#4B3AE8]' : 'text-[#5E5A68]'}`} />
                   <span>{item.label}</span>
@@ -102,9 +103,9 @@ export default function Navbar({
             type="button"
             onClick={onOpenSearch}
             aria-label="Search books, authors or topics"
-            className="flex md:hidden w-11 h-11 rounded-full items-center justify-center text-[#141416] hover:bg-[#F4F2F8] transition-colors"
+            className="flex md:hidden w-9 h-9 rounded-full items-center justify-center text-[#141416] hover:bg-[#F4F2F8] transition-colors"
           >
-            <Search className="w-[22px] h-[22px]" />
+            <Search className="w-5 h-5" />
           </button>
 
           <span className="hidden md:block w-px h-5 lg:h-6 bg-[#ECE8F4]" aria-hidden="true" />
@@ -114,26 +115,23 @@ export default function Navbar({
             <button
               type="button"
               onClick={() => {
-                setIsBellOpen((p) => !p);
-                setHasUnread(false);
+                if (onOpenNotifications) onOpenNotifications();
               }}
-              aria-label="Notifications"
-              className="relative w-11 h-11 sm:w-10 sm:h-10 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-[#1E1D24] hover:bg-[#F4F2F8] transition-colors"
+              aria-label={
+                hasUnread ? `Notifications (${unreadNotificationsCount} unread)` : 'Notifications'
+              }
+              aria-current={isNotificationsActive ? 'page' : undefined}
+              className={`relative w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8] ${
+                isNotificationsActive
+                  ? 'bg-[#EFEBFD] text-[#4B3AE8]'
+                  : 'text-[#1E1D24] hover:bg-[#F4F2F8]'
+              }`}
             >
-              <Bell className="w-[22px] h-[22px] sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
+              <Bell className="w-[18px] h-[18px] lg:w-5 lg:h-5" />
               {hasUnread && (
-                <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-2 ring-white" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444] ring-2 ring-white" />
               )}
             </button>
-
-            {isBellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-[#E6E2EE] rounded-2xl shadow-xl p-4 z-50 text-left">
-                <p className="text-sm font-bold text-[#141416] mb-1.5">Notifications</p>
-                <p className="text-xs sm:text-sm text-[#686472] leading-relaxed">
-                  Welcome to NeuroReader! Your reading preferences and uploaded PDFs are synced.
-                </p>
-              </div>
-            )}
           </div>
 
           {isAuthenticated ? (
