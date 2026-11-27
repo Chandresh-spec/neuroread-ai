@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   FileText,
   ArrowUp,
   ArrowLeft,
   ArrowRight,
+  Search,
+  X,
   Headphones,
   Sparkles,
   Bookmark,
@@ -12,34 +14,12 @@ import {
   ChevronDown,
   Trash2,
   ExternalLink,
+  RotateCcw,
   Upload,
 } from 'lucide-react';
 import { initialUserFiles } from '../data/filesData';
 
 const ITEMS_PER_PAGE = 6;
-
-const FORMAT_THEMES = {
-  pdf: {
-    label: 'PDF',
-    stripBg: '#F9E4E5',
-    badgeBg: '#DF3B3B',
-  },
-  docx: {
-    label: 'DOCX',
-    stripBg: '#E1E9FB',
-    badgeBg: '#2F6FED',
-  },
-  txt: {
-    label: 'TXT',
-    stripBg: '#E6E2D8',
-    badgeBg: '#4A4E54',
-  },
-  epub: {
-    label: 'EPUB',
-    stripBg: '#F9ECD7',
-    badgeBg: '#D97706',
-  },
-};
 
 const SORT_OPTIONS = [
   { id: 'recent', label: 'Recent' },
@@ -48,23 +28,67 @@ const SORT_OPTIONS = [
   { id: 'progress', label: 'Progress' },
 ];
 
-export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
-  const [files, setFiles] = useState(initialUserFiles);
+const ACCEPTED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'epub', 'md']);
+
+function formatAgeLabel(uploadedAt = '') {
+  return uploadedAt.replace(/^Uploaded\s+/i, '') || 'Just now';
+}
+
+function formatFileSize(bytes = 0) {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+export default function MyFilesSection({
+  files: controlledFiles,
+  onUpdateFiles,
+  onOpenFile,
+  onOpenAudio,
+  onOpenUpload,
+}) {
+  const [localFiles, setLocalFiles] = useState(initialUserFiles);
+  const files = controlledFiles ?? localFiles;
+  const setFiles = onUpdateFiles ?? setLocalFiles;
+
   const [activeFormat, setActiveFormat] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [dragActive, setDragActive] = useState(false);
+  const [statusNotice, setStatusNotice] = useState('');
+
+  const sortRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (sortRef.current && !sortRef.current.contains(e.target)) {
+        setIsSortOpen(false);
+      }
+      setActiveMenuId(null);
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsSortOpen(false);
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const formatTabs = useMemo(() => {
-    const counts = files.reduce(
-      (acc, file) => {
-        acc[file.format] = (acc[file.format] || 0) + 1;
-        return acc;
-      },
-      {}
-    );
+    const counts = files.reduce((acc, file) => {
+      acc[file.format] = (acc[file.format] || 0) + 1;
+      return acc;
+    }, {});
 
     return [
       { id: 'all', label: 'All', count: files.length },
@@ -73,6 +97,22 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
       { id: 'txt', label: 'TXT', count: counts.txt || 0 },
       { id: 'epub', label: 'EPUB', count: counts.epub || 0 },
     ];
+  }, [files]);
+
+  const storageStats = useMemo(() => {
+    const baseInitialBytes = initialUserFiles.reduce((acc, f) => acc + (f.sizeBytes || 0), 0);
+    const currentBytes = files.reduce((acc, f) => acc + (f.sizeBytes || 0), 0);
+    const deltaGb = (currentBytes - baseInitialBytes) / (1024 * 1024 * 1024);
+    const totalGb = 5.0;
+    const usedGb = Math.min(totalGb, Math.max(0.1, Number((1.2 + deltaGb).toFixed(2))));
+    const freeGb = Math.max(0, Number((totalGb - usedGb).toFixed(1)));
+    const usedPercent = Math.min(100, Math.round((usedGb / totalGb) * 100));
+    return {
+      usedLabel: usedGb.toFixed(1),
+      freeLabel: freeGb.toFixed(1),
+      totalLabel: totalGb.toFixed(0),
+      usedPercent,
+    };
   }, [files]);
 
   const filteredFiles = useMemo(() => {
@@ -84,42 +124,41 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
         const matchesSearch =
           !query ||
           file.name.toLowerCase().includes(query) ||
-          file.tags.some((tag) => tag.toLowerCase().includes(query));
+          (file.tags || []).some((tag) => tag.toLowerCase().includes(query));
         return matchesFormat && matchesSearch;
       })
       .sort((a, b) => {
-        if (sortBy === 'recent') return b.timestamp - a.timestamp;
+        if (sortBy === 'recent') return (b.timestamp || 0) - (a.timestamp || 0);
         if (sortBy === 'name') return a.name.localeCompare(b.name);
-        if (sortBy === 'size') return b.sizeBytes - a.sizeBytes;
+        if (sortBy === 'size') return (b.sizeBytes || 0) - (a.sizeBytes || 0);
         if (sortBy === 'progress') return (b.progressPercent || 0) - (a.progressPercent || 0);
         return 0;
       });
   }, [files, activeFormat, searchQuery, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredFiles.length / ITEMS_PER_PAGE));
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFormat, searchQuery, sortBy]);
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
+  const safePage = Math.min(currentPage, totalPages);
 
   const paginatedFiles = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
     return filteredFiles.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredFiles, currentPage]);
+  }, [filteredFiles, safePage]);
 
-  const startItem = filteredFiles.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredFiles.length);
+  const startItem = filteredFiles.length === 0 ? 0 : (safePage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(safePage * ITEMS_PER_PAGE, filteredFiles.length);
 
   const toggleBookmark = (e, id) => {
     e.stopPropagation();
     setFiles((prev) =>
       prev.map((f) => (f.id === id ? { ...f, isBookmarked: !f.isBookmarked } : f))
+    );
+  };
+
+  const handleResetProgress = (e, id) => {
+    e.stopPropagation();
+    setActiveMenuId(null);
+    setFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, progressPercent: null } : f))
     );
   };
 
@@ -129,26 +168,74 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
+  const handleListenFile = (file) => {
+    setActiveMenuId(null);
+    if (onOpenAudio) {
+      onOpenAudio({
+        ...file,
+        title: file.name,
+        author: `Uploaded ${(file.format || 'PDF').toUpperCase()}`,
+      });
+    } else {
+      setStatusNotice(`Launching voice playback for "${file.name}".`);
+    }
+  };
+
+  const handleDropFiles = (fileList) => {
+    const incoming = Array.from(fileList || []);
+    if (incoming.length === 0) return;
+
+    const added = [];
+    let rejected = 0;
+
+    for (const rawFile of incoming) {
+      const ext = rawFile.name.split('.').pop()?.toLowerCase() || '';
+      if (!ACCEPTED_EXTENSIONS.has(ext)) {
+        rejected += 1;
+        continue;
+      }
+      const normalizedFormat = ext === 'md' ? 'txt' : ext;
+      added.push({
+        id: `upload-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: rawFile.name,
+        format: normalizedFormat,
+        size: formatFileSize(rawFile.size),
+        sizeBytes: rawFile.size,
+        uploadedAt: 'Uploaded just now',
+        timestamp: Date.now(),
+        tags: [normalizedFormat.toUpperCase(), 'Uploaded'],
+        progressPercent: null,
+        isBookmarked: false,
+      });
+    }
+
+    if (added.length > 0) {
+      setFiles((prev) => [...added, ...prev]);
+      setCurrentPage(1);
+      setStatusNotice(
+        added.length === 1
+          ? `Added "${added[0].name}" to My Files.`
+          : `Added ${added.length} files to My Files.`
+      );
+    } else if (rejected > 0) {
+      setStatusNotice('Supported formats: PDF, DOCX, TXT, or EPUB.');
+    }
+  };
+
   const activeSortLabel = SORT_OPTIONS.find((opt) => opt.id === sortBy)?.label || 'Recent';
 
   return (
-    <div
-      className="space-y-6 sm:space-y-7 animate-in fade-in duration-300"
-      onClick={() => {
-        if (activeMenuId) setActiveMenuId(null);
-        if (isSortOpen) setIsSortOpen(false);
-      }}
-    >
-      {/* 1. Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
+    <div className="space-y-5 sm:space-y-6">
+      {/* 1. Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
-          <span className="block text-[11px] font-bold tracking-[0.14em] uppercase text-[#3A2AD9] mb-2">
-            {files.length} {files.length === 1 ? 'FILE' : 'FILES'} • 1.2 OF 5 GB USED
+          <span className="block text-[11px] font-bold tracking-[0.14em] uppercase text-[#4B3AE8] mb-1.5">
+            {files.length} {files.length === 1 ? 'FILE' : 'FILES'}
           </span>
-          <h1 className="font-editorial text-4xl sm:text-[44px] font-bold text-[#141416] tracking-tight leading-none">
-            My <span className="italic text-[#3A2AD9] font-semibold">Files</span>
+          <h1 className="text-3xl sm:text-[36px] font-extrabold text-[#141416] tracking-tight leading-none">
+            My <span className="text-[#4B3AE8]">Files</span>
           </h1>
-          <p className="text-xs sm:text-[13.5px] text-[#6B665F] mt-2.5 font-normal">
+          <p className="text-xs sm:text-[13.5px] text-[#64606E] mt-2 font-normal">
             Your uploaded books, notes and documents. Read, listen, summarize and more.
           </p>
         </div>
@@ -156,16 +243,37 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
         <button
           type="button"
           onClick={onOpenUpload}
-          className="inline-flex items-center justify-center gap-2 bg-[#3A2AD9] hover:bg-[#3021C2] text-white font-semibold text-xs sm:text-[13px] px-5 py-2.5 rounded-full transition-all shadow-xs active:scale-95 self-start sm:self-end flex-shrink-0"
+          className="inline-flex items-center justify-center gap-2 bg-[#141416] hover:bg-[#27272D] text-white font-semibold text-xs sm:text-[13px] px-5 py-2.5 rounded-full transition-colors self-start sm:self-center flex-shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8]"
         >
-          <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
+          <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden="true" />
           <span>Upload</span>
         </button>
       </div>
 
-      {/* 2. Format Filter Pills + Search & Sort */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pt-1">
-        {/* Left: Format Tabs */}
+      {/* 2. Storage Usage Bar */}
+      <div className="bg-white border border-[#E5E5EA] rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
+        <span className="text-xs text-[#64606E] whitespace-nowrap">
+          <strong className="font-bold text-[#141416] tabular-nums">
+            {storageStats.usedLabel} GB
+          </strong>{' '}
+          of {storageStats.totalLabel} GB used
+        </span>
+
+        <div className="flex-1 h-1.5 bg-[#ECECF2] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#4B3AE8] rounded-full transition-all duration-300"
+            style={{ width: `${storageStats.usedPercent}%` }}
+          />
+        </div>
+
+        <span className="text-xs text-[#64606E] whitespace-nowrap tabular-nums">
+          {storageStats.freeLabel} GB free
+        </span>
+      </div>
+
+      {/* 3. Format Filter Chips + Search & Sort */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        {/* Left: Format Chips */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
           {formatTabs.map((tab) => {
             const isActive = activeFormat === tab.id;
@@ -173,18 +281,19 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveFormat(tab.id)}
-                className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border ${
-                  isActive
-                    ? 'bg-[#141416] text-white border-[#141416]'
-                    : 'bg-white hover:bg-[#FAF8F5] text-[#141416] border-[#E5DFD3]'
-                }`}
+                onClick={() => {
+                  setActiveFormat(tab.id);
+                  setCurrentPage(1);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8] ${isActive
+                  ? 'bg-[#141416] text-white border-[#141416]'
+                  : 'bg-white hover:bg-[#F7F7FA] text-[#141416] border-[#E5E5EA]'
+                  }`}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`text-[11px] font-medium ${
-                    isActive ? 'text-white/75' : 'text-[#8C867E]'
-                  }`}
+                  className={`text-[11px] font-medium tabular-nums ${isActive ? 'text-white/75' : 'text-[#8A8692]'
+                    }`}
                 >
                   {tab.count}
                 </span>
@@ -195,44 +304,74 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
 
         {/* Right: Search & Sort */}
         <div className="flex items-center gap-2.5">
-          <div className="flex-1 sm:w-56 md:w-64">
+          <div className="relative flex-1 sm:w-56 md:w-64">
+            <Search
+              className="w-3.5 h-3.5 text-[#8A8692] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              aria-hidden="true"
+            />
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search in my files..."
-              className="w-full bg-white text-xs text-[#141416] placeholder-[#8C867E] rounded-full px-4 py-2 border border-[#E5DFD3] focus:outline-none focus:border-[#3A2AD9] transition-colors"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search in my files...."
+              aria-label="Search in my files"
+              className="w-full bg-white text-xs text-[#141416] placeholder-[#8A8692] rounded-lg pl-8 pr-7 py-2 border border-[#E5E5EA] focus:outline-none focus:border-[#4B3AE8] transition-colors"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setCurrentPage(1);
+                }}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-[#8A8692] hover:text-[#141416]"
+              >
+                <X className="w-3 h-3" aria-hidden="true" />
+              </button>
+            )}
           </div>
 
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <div className="relative" ref={sortRef}>
             <button
               type="button"
               onClick={() => setIsSortOpen((prev) => !prev)}
-              className="inline-flex items-center gap-2 bg-white hover:bg-[#FAF8F5] text-[#141416] border border-[#E5DFD3] rounded-full px-4 py-2 text-xs font-medium transition-colors whitespace-nowrap"
+              aria-haspopup="menu"
+              aria-expanded={isSortOpen}
+              className="inline-flex items-center gap-2 bg-white hover:bg-[#F7F7FA] text-[#141416] border border-[#E5E5EA] rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8]"
             >
               <span>{activeSortLabel}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#6B665F]" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#64606E]" aria-hidden="true" />
             </button>
 
             {isSortOpen && (
               <div
-                className="absolute right-0 mt-1.5 w-40 bg-white border border-[#E5DFD3] rounded-2xl py-1.5 shadow-xl z-30 animate-in fade-in zoom-in-95 duration-150"
-                onClick={() => setIsSortOpen(false)}
+                role="menu"
+                className="absolute right-0 mt-1.5 w-40 bg-white border border-[#E5E5EA] rounded-xl py-1.5 shadow-xl z-30"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => setSortBy(opt.id)}
-                    className={`w-full text-left px-3.5 py-1.5 text-xs font-medium flex items-center justify-between transition-colors ${
-                      sortBy === opt.id
-                        ? 'text-[#3A2AD9] bg-[#EBE8FD]/50 font-bold'
-                        : 'text-[#5E5A54] hover:text-[#141416] hover:bg-[#FAF8F5]'
-                    }`}
+                    role="menuitemradio"
+                    aria-checked={sortBy === opt.id}
+                    onClick={() => {
+                      setSortBy(opt.id);
+                      setCurrentPage(1);
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-1.5 text-xs font-medium flex items-center justify-between transition-colors ${sortBy === opt.id
+                      ? 'text-[#4B3AE8] bg-[#F2F0FF] font-semibold'
+                      : 'text-[#52525B] hover:text-[#141416] hover:bg-[#F7F7FA]'
+                      }`}
                   >
                     <span>{opt.label}</span>
-                    {sortBy === opt.id && <Check className="w-3.5 h-3.5 text-[#3A2AD9]" />}
+                    {sortBy === opt.id && (
+                      <Check className="w-3.5 h-3.5 text-[#4B3AE8]" aria-hidden="true" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -241,173 +380,219 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
         </div>
       </div>
 
-      {/* 3. Files 3-Column Card Grid */}
+      {/* Inline Status Notice */}
+      {statusNotice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-between gap-3 bg-[#F6F4FF] border border-[#DFD8FA] rounded-xl px-4 py-2.5 text-xs text-[#2D2758]"
+        >
+          <span>{statusNotice}</span>
+          <button
+            type="button"
+            onClick={() => setStatusNotice('')}
+            aria-label="Dismiss notice"
+            className="p-1 text-[#5B5482] hover:text-[#141416] rounded"
+          >
+            <X className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      {/* 4. 4-Column White File Cards Grid */}
       {filteredFiles.length === 0 ? (
-        <div className="bg-white border border-[#E5DFD3] rounded-[20px] p-10 text-center shadow-2xs">
-          <FileText className="w-10 h-10 text-[#8C867E] mx-auto mb-2.5" />
-          <h3 className="font-editorial text-lg font-bold text-[#141416] mb-1">
+        <div className="bg-white border border-[#E5E5EA] rounded-2xl p-10 text-center">
+          <FileText className="w-9 h-9 text-[#8A8692] mx-auto mb-2.5" aria-hidden="true" />
+          <h2 className="text-base font-bold text-[#141416] mb-1">
             No matching files found
-          </h3>
-          <p className="text-xs text-[#6B665F] max-w-sm mx-auto mb-4">
+          </h2>
+          <p className="text-xs text-[#64606E] max-w-sm mx-auto mb-4">
             Try adjusting your search query or format filter, or upload a new file.
           </p>
           <button
             type="button"
             onClick={onOpenUpload}
-            className="inline-flex items-center gap-2 bg-[#3A2AD9] hover:bg-[#3021C2] text-white font-semibold text-xs px-5 py-2 rounded-full transition-all shadow-xs"
+            className="inline-flex items-center gap-2 bg-[#141416] hover:bg-[#27272D] text-white font-semibold text-xs px-5 py-2 rounded-full transition-colors"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Upload New File</span>
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {paginatedFiles.map((file) => {
-            const hasProgress = typeof file.progressPercent === 'number';
-            const theme = FORMAT_THEMES[file.format] || {
-              label: (file.format || 'FILE').toUpperCase(),
-              stripBg: '#EAE6DD',
-              badgeBg: '#4A4E54',
-            };
+            const hasProgress =
+              typeof file.progressPercent === 'number' && file.progressPercent > 0;
+            const formatLabel = (file.format || 'FILE').toUpperCase();
+            const tags = file.tags || [];
+            const visibleTags = tags.slice(0, 2);
+            const extraTagCount = Math.max(0, tags.length - 2);
 
             return (
-              <div
+              <article
                 key={file.id}
                 onClick={() => onOpenFile(file)}
-                className="bg-white rounded-[20px] border border-[#EAE4D8] hover:border-[#D5CEC0] flex flex-col justify-between transition-all duration-200 group cursor-pointer shadow-[0_1px_2px_rgba(20,20,22,0.03)] hover:shadow-md relative"
+                className="group min-w-0 bg-white rounded-2xl border border-[#E6E6EB] hover:border-[#CFC7F8] p-3 sm:p-5 flex flex-col justify-between transition-all cursor-pointer shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:shadow-[0_6px_20px_rgba(75,58,232,0.08)] relative"
               >
-                {/* Top Tinted Format Strip */}
-                <div
-                  className="px-5 py-3.5 rounded-t-[19px] flex items-center justify-between"
-                  style={{ backgroundColor: theme.stripBg }}
-                >
-                  <span
-                    className="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase text-white"
-                    style={{ backgroundColor: theme.badgeBg }}
-                  >
-                    {theme.label}
-                  </span>
-                  <span className="text-[11px] font-medium text-[#6B665F]">{file.size}</span>
-                </div>
+                <div>
+                  {/* Card Top Row: Lavender Format Pill + Bookmark */}
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2.5 sm:mb-3.5">
+                    <span className="px-2 sm:px-2.5 py-0.5 rounded-md text-[9.5px] sm:text-[10px] font-bold tracking-[0.06em] uppercase bg-[#EFEBFD] text-[#4B3AE8]">
+                      {formatLabel}
+                    </span>
 
-                {/* Card Body */}
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-editorial text-[17px] sm:text-[18px] font-semibold text-[#141416] leading-snug group-hover:text-[#3A2AD9] transition-colors mb-3.5">
-                      {file.name}
-                    </h3>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleBookmark(e, file.id)}
+                      aria-label={file.isBookmarked ? 'Remove bookmark' : 'Bookmark file'}
+                      aria-pressed={!!file.isBookmarked}
+                      className={`p-1 -m-1 rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8] ${
+                        file.isBookmarked
+                          ? 'text-[#4B3AE8]'
+                          : 'text-[#8A8692] hover:text-[#4B3AE8]'
+                      }`}
+                    >
+                      <Bookmark
+                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                          file.isBookmarked ? 'text-[#4B3AE8] fill-[#4B3AE8]' : ''
+                        }`}
+                      />
+                    </button>
+                  </div>
 
-                    <p className="text-[11px] text-[#7D7870] mb-2">{file.uploadedAt}</p>
+                  {/* File Title */}
+                  <h2 className="text-[13px] sm:text-[15px] font-bold text-[#141416] leading-snug group-hover:text-[#4B3AE8] transition-colors line-clamp-2 break-words">
+                    {file.name}
+                  </h2>
 
-                    <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
-                      {file.tags.map((tag) => (
+                  {/* Size · Upload Age */}
+                  <p className="text-[10.5px] sm:text-[11px] text-[#7A7782] mt-1 sm:mt-1.5 truncate">
+                    {file.size} · {formatAgeLabel(file.uploadedAt)}
+                  </p>
+
+                  {/* Tags (max 2 + "+N") */}
+                  {visibleTags.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-2 sm:mt-2.5">
+                      {visibleTags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-2.5 py-0.5 rounded-full text-[10.5px] font-medium bg-[#EFEBE2] text-[#5E5A54]"
+                          className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10.5px] font-medium bg-white border border-[#E5E5EA] text-[#52525B]"
                         >
                           {tag}
                         </span>
                       ))}
+                      {extraTagCount > 0 && (
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10.5px] font-medium bg-[#F7F7FA] border border-[#E5E5EA] text-[#64606E] tabular-nums">
+                          +{extraTagCount}
+                        </span>
+                      )}
                     </div>
+                  )}
+                </div>
 
-                    {hasProgress ? (
-                      <div>
-                        <div className="flex items-center justify-between text-[11px] mb-1.5">
-                          <span className="text-[#7D7870]">Progress</span>
-                          <span className="font-bold text-[#3A2AD9]">{file.progressPercent}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-[#ECE7DD] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#3A2AD9] rounded-full transition-all duration-300"
-                            style={{ width: `${file.progressPercent}%` }}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-[#7D7870]">Not started yet</p>
-                    )}
+                {/* Progress + Actions */}
+                <div className="mt-3 sm:mt-4">
+                  <div>
+                    <div className="flex items-center justify-between text-[10.5px] sm:text-[11px] mb-1.5">
+                      <span className="text-[#7A7782] truncate">
+                        {hasProgress ? 'Progress' : 'Not started yet'}
+                      </span>
+                      {hasProgress && (
+                        <span className="font-bold text-[#4B3AE8] tabular-nums">
+                          {file.progressPercent}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-full h-1.5 bg-[#ECECF2] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#4B3AE8] rounded-full transition-all duration-300"
+                        style={{ width: `${hasProgress ? file.progressPercent : 0}%` }}
+                      />
+                    </div>
                   </div>
 
-                  {/* Card Footer Actions */}
-                  <div className="flex items-center gap-2 mt-5">
+                  {/* Card Footer Actions: Primary CTA + More Options */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onOpenFile(file);
                       }}
-                      className={`flex-1 py-2.5 px-4 rounded-full text-xs font-semibold transition-all active:scale-[0.98] text-center ${
-                        hasProgress
-                          ? 'bg-[#141416] hover:bg-[#27272C] text-white'
-                          : 'bg-[#3A2AD9] hover:bg-[#3021C2] text-white'
-                      }`}
+                      className="flex-1 min-w-0 bg-[#141416] hover:bg-[#27272D] text-white py-2 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold transition-colors text-center leading-tight truncate focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8]"
                     >
-                      {hasProgress ? 'Continue reading' : 'Read now'}
+                      {hasProgress ? (
+                        <>
+                          <span className="sm:hidden">Continue</span>
+                          <span className="hidden sm:inline">Continue reading</span>
+                        </>
+                      ) : (
+                        'Read now'
+                      )}
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={(e) => toggleBookmark(e, file.id)}
-                      aria-label="Bookmark file"
-                      className="w-9 h-9 rounded-full border border-[#E5DFD3] bg-white hover:bg-[#FAF8F5] flex items-center justify-center transition-colors flex-shrink-0"
-                    >
-                      <Bookmark
-                        className={`w-4 h-4 ${
-                          file.isBookmarked
-                            ? 'text-[#281F88] fill-[#281F88]'
-                            : 'text-[#6B665F]'
-                        }`}
-                      />
-                    </button>
-
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative" onMouseDown={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        onClick={() =>
-                          setActiveMenuId(activeMenuId === file.id ? null : file.id)
-                        }
-                        aria-label="More options"
-                        className="w-9 h-9 rounded-full border border-[#E5DFD3] bg-white hover:bg-[#FAF8F5] flex items-center justify-center text-[#7D7870] hover:text-[#141416] transition-colors flex-shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId((prev) => (prev === file.id ? null : file.id));
+                        }}
+                        aria-label={`More options for ${file.name}`}
+                        aria-expanded={activeMenuId === file.id}
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl border border-[#E5E5EA] bg-white hover:bg-[#F7F7FA] flex items-center justify-center text-[#64606E] hover:text-[#141416] transition-colors flex-shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8]"
                       >
-                        <MoreHorizontal className="w-4 h-4" />
+                        <MoreHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
                       </button>
 
                       {activeMenuId === file.id && (
-                        <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white border border-[#E5DFD3] rounded-2xl py-1.5 shadow-xl z-20 animate-in fade-in zoom-in-95 duration-150">
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute -right-1 sm:right-0 bottom-full mb-1.5 w-40 sm:w-44 bg-white border border-[#E5E5EA] rounded-xl py-1.5 shadow-xl z-20"
+                        >
                           <button
                             type="button"
                             onClick={() => {
                               setActiveMenuId(null);
                               onOpenFile(file);
                             }}
-                            className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#FAF8F5] flex items-center gap-2"
+                            className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#F7F7FA] flex items-center gap-2"
                           >
-                            <ExternalLink className="w-3.5 h-3.5 text-[#6B665F]" />
+                            <ExternalLink className="w-3.5 h-3.5 text-[#64606E]" />
                             <span>Open Reader</span>
                           </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              alert(`Launching text-to-speech for "${file.name}"`);
-                            }}
-                            className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#FAF8F5] flex items-center gap-2"
+                            onClick={() => handleListenFile(file)}
+                            className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#F7F7FA] flex items-center gap-2"
                           >
-                            <Headphones className="w-3.5 h-3.5 text-[#3A2AD9]" />
+                            <Headphones className="w-3.5 h-3.5 text-[#4B3AE8]" />
                             <span>Listen (TTS)</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => {
                               setActiveMenuId(null);
-                              alert(`Generating AI Summary for "${file.name}"`);
+                              setStatusNotice(
+                                `AI Summary ready for "${file.name}" — open the reader and select Simplified or Structured mode.`
+                              );
                             }}
-                            className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#FAF8F5] flex items-center gap-2"
+                            className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#F7F7FA] flex items-center gap-2"
                           >
-                            <Sparkles className="w-3.5 h-3.5 text-[#3A2AD9]" />
+                            <Sparkles className="w-3.5 h-3.5 text-[#4B3AE8]" />
                             <span>AI Summary</span>
                           </button>
-                          <div className="h-px bg-[#EEE9DF] my-1" />
+                          {hasProgress && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleResetProgress(e, file.id)}
+                              className="w-full text-left px-3.5 py-1.5 text-xs text-[#141416] hover:bg-[#F7F7FA] flex items-center gap-2"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 text-[#64606E]" />
+                              <span>Reset progress</span>
+                            </button>
+                          )}
+                          <div className="h-px bg-[#EEEEF2] my-1" />
                           <button
                             type="button"
                             onClick={(e) => handleDeleteFile(e, file.id)}
@@ -421,16 +606,62 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
+
+          {/* In-Grid Drop a File to Upload Tile */}
+          <div
+            onDragEnter={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDragActive(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDragActive(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDragActive(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDragActive(false);
+              handleDropFiles(e.dataTransfer.files);
+            }}
+            className="col-span-2 lg:col-span-1 flex"
+          >
+            <button
+              type="button"
+              onClick={onOpenUpload}
+              className={`w-full min-h-[160px] lg:min-h-[220px] rounded-2xl border border-dashed p-5 flex flex-col items-center justify-center text-center transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4B3AE8] ${
+                dragActive
+                  ? 'border-[#4B3AE8] bg-[#F4F2FF]'
+                  : 'border-[#DCD8EE] hover:border-[#4B3AE8] bg-white hover:bg-[#FAF9FF]'
+              }`}
+            >
+              <span className="w-10 h-10 rounded-xl bg-[#EFEBFD] text-[#4B3AE8] flex items-center justify-center mb-3">
+                <Upload className="w-4 h-4" aria-hidden="true" />
+              </span>
+              <span className="text-xs sm:text-[13px] font-bold text-[#141416]">
+                Drop a file to upload
+              </span>
+              <span className="text-[11px] text-[#7A7782] mt-1">
+                PDF, DOCX, TXT or EPUB
+              </span>
+            </button>
+          </div>
         </div>
       )}
 
-      {/* 4. Pagination Footer */}
+      {/* 5. Pagination Footer */}
       {filteredFiles.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-          <p className="text-xs text-[#7D7870]">
+          <p className="text-xs text-[#7A7782]">
             Showing {startItem}–{endItem} of {filteredFiles.length}{' '}
             {filteredFiles.length === 1 ? 'file' : 'files'}
           </p>
@@ -439,25 +670,25 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
             <button
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              disabled={safePage === 1}
               aria-label="Previous page"
-              className="w-8 h-8 rounded-full border border-[#E5DFD3] bg-white hover:bg-[#FAF8F5] flex items-center justify-center text-[#6B665F] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-8 h-8 rounded-full border border-[#E5E5EA] bg-white hover:bg-[#F7F7FA] flex items-center justify-center text-[#64606E] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
 
             {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => {
-              const isCurrent = page === currentPage;
+              const isCurrent = page === safePage;
               return (
                 <button
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center transition-colors border ${
-                    isCurrent
-                      ? 'bg-[#141416] text-white border-[#141416]'
-                      : 'bg-white hover:bg-[#FAF8F5] text-[#5E5A54] border-[#E5DFD3]'
-                  }`}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={`w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center transition-colors border ${isCurrent
+                    ? 'bg-[#141416] text-white border-[#141416]'
+                    : 'bg-white hover:bg-[#F7F7FA] text-[#52525B] border-[#E5E5EA]'
+                    }`}
                 >
                   {page}
                 </button>
@@ -467,11 +698,11 @@ export default function MyFilesSection({ onOpenFile, onOpenUpload }) {
             <button
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              disabled={safePage === totalPages}
               aria-label="Next page"
-              className="w-8 h-8 rounded-full border border-[#E5DFD3] bg-white hover:bg-[#FAF8F5] flex items-center justify-center text-[#141416] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-8 h-8 rounded-full border border-[#E5E5EA] bg-white hover:bg-[#F7F7FA] flex items-center justify-center text-[#141416] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
         </div>

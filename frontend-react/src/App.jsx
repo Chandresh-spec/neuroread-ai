@@ -30,6 +30,7 @@ import BookActionModal from './components/BookActionModal';
 import BookDetailPage from './components/BookDetailPage';
 import ReaderView from './components/ReaderView';
 import { INITIAL_SAVED_ITEMS, INITIAL_HIGHLIGHTS } from './data/userCollections';
+import { initialUserFiles } from './data/filesData';
 
 const INITIAL_PROFILE = {
   displayName: 'Alex Morgan',
@@ -58,6 +59,7 @@ export default function App() {
   // Shared Library Collections
   const [savedItems, setSavedItems] = useState(INITIAL_SAVED_ITEMS);
   const [highlights, setHighlights] = useState(INITIAL_HIGHLIGHTS);
+  const [userFiles, setUserFiles] = useState(initialUserFiles);
 
   // Accessibility & Preferences State
   const [fontMode, setFontMode] = useState('inter');
@@ -360,7 +362,10 @@ export default function App() {
                 <LibrarySection onOpenReader={handleOpenReader} />
               ) : activeNav === 'my-files' ? (
                 <MyFilesSection
+                  files={userFiles}
+                  onUpdateFiles={setUserFiles}
                   onOpenFile={handleOpenReader}
+                  onOpenAudio={handleOpenAudioBook}
                   onOpenUpload={() => setIsAddFileOpen(true)}
                 />
               ) : activeNav === 'saved-books' ? (
@@ -505,11 +510,27 @@ export default function App() {
         isOpen={isAddFileOpen}
         onClose={() => setIsAddFileOpen(false)}
         onFileAdded={(newFile) => {
-          alert(`File "${newFile.title}" successfully added! Ready for accessible reading.`);
+          const format = newFile.format || 'pdf';
+          const uploadedEntry = {
+            id: newFile.id || `upload-${Date.now()}`,
+            name: newFile.name || newFile.title,
+            format,
+            size: newFile.size || '1.0 MB',
+            sizeBytes: newFile.sizeBytes || 1048576,
+            uploadedAt: 'Uploaded just now',
+            timestamp: Date.now(),
+            tags: [format.toUpperCase(), 'Uploaded'],
+            progressPercent: null,
+            isBookmarked: false,
+          };
+          setUserFiles((prev) => [uploadedEntry, ...prev]);
+          setAccountNotice(`File "${newFile.title}" added to My files.`);
+          setTimeout(() => setAccountNotice(''), 4000);
         }}
       />
 
       <AudioPlayerModal
+        key={selectedAudioBook?.id || 'default'}
         isOpen={isAudioPlayerOpen}
         onClose={() => setIsAudioPlayerOpen(false)}
         book={selectedAudioBook}
